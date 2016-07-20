@@ -66,8 +66,8 @@ lM <- rbeta(10000,1000,1.2) #larval mortality of 99.88% (range 98.98-99.99%)
 #hist(lM);mean(lM);min(lM);max(lM)
 
 # Beverton-Holt model for carrying capacity based recruitment mortality, carrying capacity is the mean of North American carrying capacities in Table 3 of Myers et al. 2001 (CC=0.431088 tonnes/km^2 SD=0.386696)
-CC <- 0.579352312*1000                 #(kg/km^2)
-CC_SD <- 0.772463562*1000              #(kg/km^2)
+CC <- 0.579352312/1000                 #(kg/m^2)
+CC_SD <- 0.772463562/1000              #(kg/m^2)
 #if this CC was fixed, total biomass would not exceed 500,000 t
 
 # Habitat carrying capacity, in kg of virtual fish per cell (4779 is the number of cells in the default grid). This could be substituted with "known" habitat carrying capacity.
