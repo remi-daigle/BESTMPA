@@ -30,6 +30,12 @@ source("user_input.R")
 # writeOGR(p,dsn="shapefiles",layer="master_polygon",driver="ESRI Shapefile",overwrite_layer = TRUE)
 p <- readOGR(dsn="shapefiles",layer="master_polygon")
 
+# load connectivity matrix
+#adult
+cma <- initcm(p,e_fold_adult,cell_size)
+#larvae
+cml <- initcm(p,e_fold_larvae,cell_size)
+
 # calculate distances
 distance <- gDistance(spTransform(fish_communities,proj),p,byid = T)
 
@@ -48,10 +54,8 @@ for(s in names(p)[c(4,154)]){
         if(any(fish<0)) browser()
 
         # dispersal
-        #TODO: make 'real' connectivity matrices
-        cm <- matrix(1/nrow(fish),nrow=nrow(fish),ncol=nrow(fish))
 
-        fish <- dispersal(fish,cm,ages=5:50)
+        fish <- dispersal(fish,cm=cma,ages=5:50)
 
         fish <- mortality(fish,M=sample(M,nrow(fish)))
         # reproduction and larval dispersal
@@ -59,7 +63,7 @@ for(s in names(p)[c(4,154)]){
 
         recruits <- fish2eggs(fish,fecundity=0.5*10^6,age_mat_steepness=2.5,age_mat_sigmoid=4,l_to_w_int=0.000011,l_to_w_power=2.91,Linf_mean=112.03,Linf_SD=10.46/1.96,k_mean=0.13,k_SD=0.021/196,t0=0.18)
 
-        recruits <- dispersal(recruits,cm,ages=0)
+        recruits <- dispersal(recruits,cm=cml,ages=0)
 
         recruits <- mortality(recruits,M=sample(lM,length(recruits)),ages=0)
         # recruitment

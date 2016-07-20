@@ -76,10 +76,10 @@ CCs <- CCs[CCs>0][1:4779] #enforce no negative CCs
 
 ########################### Dispersal ##################################################
 # larval dispersal kernels are assumed to be exponential, e_fold_larvae is the e folding scale in km (the distance at which there will be fewer settlers by a factor of e). We assume that scale to be sqrt of 2cm/s*90d (avg current velocity * PLD) because we assume that the current is like a random walk
-e_fold_larvae <- sqrt(2/100000*60*60*24*90)
+e_fold_larvae <- sqrt(2/100000*60*60*24*90)*1000
 
 # adult dispersal kernels are also assumed to be exponential, e_fold_adult (in km) was calculated from data in Lawson & Rose 2000
-e_fold_adult  <- 74.139
+e_fold_adult  <- 74.139*1000
 # minimium size for adult migration (cm) Lawson & Rose 2000
 min_size_migration <- 50
 
