@@ -8,8 +8,6 @@ roundprob(x)
 }
 \arguments{
 \item{x}{a vector of numbers to be rounded}
-
-\item{x}{}
 }
 \description{
 This will round `x` probabilistically. For example, `roundprob(1.5)` will return `1` in roughly half of the cases and will return `2` in the other cases.
