@@ -4,7 +4,7 @@
 \alias{fishing}
 \title{Title}
 \usage{
-fishing(fish, quota, ages = 4:50, distance, haul = 100)
+fishing(fish, quota, ages = 4:50, distance, fish_licenses, mpa)
 }
 \arguments{
 \item{haul}{}

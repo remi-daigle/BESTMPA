@@ -73,10 +73,9 @@ for(s in names(p)[c(4,154)]){
         print("fishing")
         ages=4:50
         quota <- sum(apply(fish[,ages+1],1,function(x) sum(length2weight(age2length(ages))*x)))/3
-        haul <- quota/sum(fish_licenses)
         print(quota)
 
-        fishcatch <- fishing(fish,quota,ages,distance,haul)
+        fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p[[s]])
         fish <- fish-fishcatch
 
         # writing to disk
