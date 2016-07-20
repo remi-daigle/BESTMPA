@@ -33,5 +33,5 @@ fishing <- function(fish,quota,ages=4:50,distance,fish_licenses,mpa){
         }
 
     }
-    return(fishcatch)
+    return(roundprob(fishcatch))
 }
