@@ -75,7 +75,13 @@ for(s in names(p)[c(4,154)]){
         quota <- sum(apply(fish[,ages+1],1,function(x) sum(length2weight(age2length(ages))*x)))/3
         print(quota)
 
-        fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p[[s]])
+        if(y %in% time){
+            #spinup using status quo
+            fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p$MPA_SQ_1)
+        } else {
+            #apply MPAs
+            fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p[[s]])
+        }
         fish <- fish-fishcatch
 
         # writing to disk
