@@ -54,10 +54,14 @@ for(s in names(p)[c(4,154)]){
         if(any(fish<0)) browser()
 
         # dispersal
-
         fish <- dispersal(fish,cm=cma,ages=5:50)
 
+        # mortality
         fish <- mortality(fish,M=sample(M,nrow(fish)))
+
+        # fish outside the habitat die automatically
+        fish <- fish*p$Habitats
+
         # reproduction and larval dispersal
         print("larvae")
 
@@ -66,7 +70,8 @@ for(s in names(p)[c(4,154)]){
         recruits <- dispersal(recruits,cm=cml,ages=0)
 
         recruits <- mortality(recruits,M=sample(lM,length(recruits)),ages=0)
-        # recruitment
+
+        # density dependent recruitment
         recruits <- recruits/(1+rowSums(fish)/CCs)
 
         # fishing
