@@ -45,6 +45,7 @@ for(s in names(p)[c(4,154)]){
         print("adults")
         if(y==min(tot_time)){
             fish <- initpop(initial_abun=250*10^6,cells=length(p),maxage=maxage,rate=0.7)
+            biomass_est_bank <- NULL
         } else {
             fish[,2:maxage] <- fish[,1:(maxage-1)]
             fish[,1] <- recruits
@@ -57,7 +58,7 @@ for(s in names(p)[c(4,154)]){
         fish <- dispersal(fish,cm=cma,ages=5:50)
 
         # mortality
-        fish <- mortality(fish,M=sample(M,nrow(fish)))
+        fish <- mortality(fish,M=sample(M,nrow(fish)),ages=1:50)
 
         # fish outside the habitat die automatically
         fish <- fish*p$Habitats
