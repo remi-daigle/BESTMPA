@@ -30,6 +30,9 @@ source("user_input.R")
 # writeOGR(p,dsn="shapefiles",layer="master_polygon",driver="ESRI Shapefile",overwrite_layer = TRUE)
 p <- readOGR(dsn="shapefiles",layer="master_polygon")
 
+# adjust CCs to be 0 outside habitat
+CCs <- CCs*p$Habitats
+
 # load connectivity matrix
 #adult
 cma <- initcm(p,e_fold_adult,cell_size)
@@ -38,9 +41,11 @@ cml <- initcm(p,e_fold_larvae,cell_size)
 
 # calculate distances
 distance <- gDistance(spTransform(fish_communities,proj),p,byid = T)
+breeding_near <- apply(gDistance(spTransform(Breeding,proj),p,byid = T),1,which.min)
 
 for(s in names(p)[c(4,154)]){
     for(y in tot_time){
+        gc()
         # adult disersal & mortality
         print("adults")
         if(y==min(tot_time)){
@@ -63,29 +68,47 @@ for(s in names(p)[c(4,154)]){
         # fish outside the habitat die automatically
         fish <- fish*p$Habitats
 
-        # reproduction and larval dispersal
+        # reproduction
         print("larvae")
 
         recruits <- fish2eggs(fish,fecundity=0.5*10^6,age_mat_steepness=2.5,age_mat_sigmoid=4,l_to_w_int=0.000011,l_to_w_power=2.91,Linf_mean=112.03,Linf_SD=10.46/1.96,k_mean=0.13,k_SD=0.021/196,t0=0.18)
 
+        # relocate eggs to nearest breeding ground
+        recruits <- data.frame(r=recruits,b=breeding_near,polys=p$Breeding*breeding_near!=0) %>%
+            group_by(b) %>%
+            summarize(rec=sum(r),poly=sum(polys)) %>%
+            mutate(recruits=rec/poly) %>%
+            ungroup() %>%
+            roundprob()
+        recruits <- (left_join(data.frame(b=breeding_near),recruits,by="b")*p$Breeding) %>%
+            select(recruits) %>%
+            unlist() %>%
+            matrix()
+
+
+        #larval dispersal
         recruits <- dispersal(recruits,cm=cml,ages=0)
 
         recruits <- mortality(recruits,M=sample(lM,length(recruits)),ages=0)
 
         # density dependent recruitment
-        recruits <- recruits/(1+rowSums(fish)/CCs)
+        recruits <- roundprob(recruits/(1+rowSums(fish)/CCs))
+        recruits[is.nan(recruits)] <- 0
 
         # fishing
         print("fishing")
         ages=4:50
-        quota <- sum(apply(fish[,ages+1],1,function(x) sum(length2weight(age2length(ages))*x)))/3
-        print(quota)
 
-        if(y %in% time){
+
+        if(!y %in% time){
             #spinup using status quo
+            quota <- sum(apply(fish[,ages+1]*(1-p$MPA_SQ_1),1,function(x) sum(length2weight(age2length(ages))*x)))/3
+            print(quota)
             fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p$MPA_SQ_1)
         } else {
             #apply MPAs
+            quota <- sum(apply(fish[,ages+1]*(1-p[[s]]),1,function(x) sum(length2weight(age2length(ages))*x)))/3
+            print(quota)
             fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p[[s]])
         }
         fish <- fish-fishcatch
