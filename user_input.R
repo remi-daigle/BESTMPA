@@ -2,8 +2,8 @@
 ##
 ############################## Basic model parameters ########################################
 # total model run time in years (e.g. 2001:2100 would be 100 years)
-time <- 2001:2051
-spinup <- 10 # number of years before "time" the model starts, results from spin-up years are not saved, all scenarios start as status quo
+time <- 2021:2071
+spinup <- 20 # number of years before "time" the model starts, results from spin-up years are not saved, all scenarios start as status quo
 tot_time <- (min(time)-spinup):max(time)
 
 # # time step in years
@@ -54,7 +54,7 @@ age_mat_sigmoid <- 4
 fecundity <- 0.5*10^6
 
 # Maximum age considered in matrix
-maxage <- 50
+maxage <- 20
 
 ######################### Sources of natural Mortality ##################################
 # natural mortality (Swain & Chouinard 2008)
@@ -72,7 +72,7 @@ CCs <- (10^rnorm(10000,-1.202222222,0.9199018667))*(cell_size^2)/1000
 CCs <- CCs[CCs>0][1:4779] #enforce no negative CCs
 ########################### Dispersal ##################################################
 # larval dispersal kernels are assumed to be exponential, e_fold_larvae is the e folding scale in km (the distance at which there will be fewer settlers by a factor of e). We assume that scale to be sqrt of 2cm/s*90d (avg current velocity * PLD) because we assume that the current is like a random walk
-e_fold_larvae <- sqrt(2/100000*60*60*24*90)*1000
+e_fold_larvae <- 2/100000*60*60*24*90*1000
 
 # adult dispersal kernels are also assumed to be exponential, e_fold_adult (in km) was calculated from data in Lawson & Rose 2000
 e_fold_adult  <- 74.139*1000
@@ -169,8 +169,8 @@ fish_operating_cost_ratio <- (46587+9008)/105054 # (labour+fuel)/total
 # default profitability to calibrate operating cost (Department of Fisheries and Oceans, 2007, Table A.19 and 5.7 Mixed Fishery Fleet)
 Status_quo_profitability <- 166184/105054 #$ catch value/$ operating expense
 
-# landed value for cod CAD/t (http://www.dfo-mpo.gc.ca/stats/commercial/sea-maritimes-eng.htm)
-fish_landed_value <- 1.24*1000
+# landed value for cod CAD/kg (http://www.dfo-mpo.gc.ca/stats/commercial/sea-maritimes-eng.htm)
+fish_landed_value <- 1.24
 
 # Cost of maintaining an MPA 2698 USD/km2/year (Balmford 2004), 1.21 is current exchange rate to CAD
 # MPA_maintenance_cost <- 2698*1.21
