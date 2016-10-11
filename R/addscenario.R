@@ -1,53 +1,59 @@
 #' Title
 #'
-#' @param p
-#' @param oldMPA
-#' @param n
+#' @param domain
+#' @param priority
+#' @param excluded
+#' @param MPA_coverage
+#' @param replicates
+#' @param dist
+#' @param name
+#' @param cell_size
+#' @param cells
+#' @param included
 #'
 #' @return
 #' @export
 #'
 #' @examples
-addscenario <- function(p,oldMPA,MPA_coverage=0.1,replicates=10,dist=NA,name="Status_quo",Habitats=FALSE,Breeding=FALSE,cell_size){
+addscenario <- function(domain,included=NA,priority=NA,excluded=NA,MPA_coverage=0.1,replicates=10,dist=NA,name="Status_quo",cell_size,cells){
 
-    Status_quo <- apply(gCovers(oldMPA,p,byid = TRUE),1,any)|apply(gOverlaps(oldMPA,p,byid = TRUE),1,any)
+    Status_quo <- apply(gCovers(included,domain,byid = TRUE),1,any)|apply(gOverlaps(included,domain,byid = TRUE),1,any)
 
     if(name=="Status_quo"){
 
         for(i in replicates){
-            p[[paste0("MPA_SQ_",i)]] <- Status_quo
+            domain[[paste0("MPA_SQ_",i)]] <- Status_quo
         }
 
-        return(p)
+        return(domain)
 
     } else {
-        # browser()
-
         # create neighbours and graphs
 
         require(igraph)
         require(spdep)
 
-        nb <- poly2nb(p,snap=100)
-        gr <- spdf2graph(p,nb)
+        nb <- poly2nb(domain,snap=100)
+        gr <- spdf2graph(domain,nb)
 
-        # set Breeding protection if applicable
-        if(Breeding) Status_quo <- Status_quo|p$Breeding
+        # # set Breeding protection if applicable
+        # if(Breeding) Status_quo <- Status_quo|domain$Breeding
 
 
         # loop through replicates
 
         for(i in replicates){
+            print(paste("calculating replicate",i))
 
             # set status_quo as MPAs
-            p[[paste0(name,"_",i)]] <- Status_quo
+            domain[[paste0(name,"_",i)]] <- Status_quo
 
             # generate new MPA sizes
-            MPA_sizes <- generatempasizes(cell_size,p,MPA_coverage,Status_quo)
+            MPA_sizes <- generatempasizes(cell_size,cells,domain,MPA_coverage,Status_quo)
 
             # set distances
             if(is.na(dist)){
-                dist <- round(sqrt(length(p))/(sqrt(length(MPA_sizes))-1))
+                dist <- round(sqrt(length(domain))/(sqrt(length(MPA_sizes))-1))
             } else {
                 dist <- round(dist/cell_size)+1
             }
@@ -58,25 +64,32 @@ addscenario <- function(p,oldMPA,MPA_coverage=0.1,replicates=10,dist=NA,name="St
                 tol <- 1
                 while(length(candidates)<1){
 
-                    candidates <- unique(unlist(neighborhood(gr,order=dist,node=which(p@data[,names(p)==paste0(name,"_",i)]))))
+                    candidates <- unique(unlist(neighborhood(gr,order=dist,node=which(domain@data[,names(domain)==paste0(name,"_",i)]))))
 
-                    if(Habitats) candidates <- candidates[p$Habitats[candidates]]
+                    # remove non-priority and excluded
+                    if(!any(is.na(priority))) candidates <- candidates[priority[candidates]]
+                    if(!any(is.na(excluded))) candidates <- candidates[!excluded[candidates]]
 
-                    candidates <- candidates[!candidates %in% unlist(neighborhood(gr,order=dist*tol,node=which(p@data[,names(p)==paste0(name,"_",i)])))]
+                    candidates <- candidates[!candidates %in% unlist(neighborhood(gr,order=dist*tol,node=which(domain@data[,names(domain)==paste0(name,"_",i)])))]
 
                     tol <- tol*0.9
                 }
 
                 seed <- sample(candidates,1)
-                while(length(seed)<j) seed <- unique(c(seed,sample(unlist(nb[seed]))))
+                while(length(seed)<j){
+                    seed <- unique(c(seed,sample(unlist(nb[seed]))))
+                    # # remove non-priority and excluded
+                    if(!any(is.na(priority))) seed <- seed[priority[seed]]
+                    if(!any(is.na(excluded))) seed <- seed[!excluded[seed]]
+                    }
                 if(length(seed)>j) seed <- seed[1:j]
-                # plot(p[seed,],col='blue')
-                p[[paste0(name,"_",i)]][seed] <- TRUE
+                # plot(domain[seed,],col='blue')
+                domain[[paste0(name,"_",i)]][seed] <- TRUE
 
             }
 
         }
-        return(p)
+        return(domain)
 
     }
 
