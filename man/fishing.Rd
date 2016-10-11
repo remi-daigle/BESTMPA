@@ -7,7 +7,7 @@
 fishing(fish, quota, ages = 4:50, distance, fish_licenses, mpa)
 }
 \arguments{
-\item{haul}{}
+\item{distance}{}
 }
 \description{
 Title

@@ -4,10 +4,10 @@
 \alias{initgrid}
 \title{Title}
 \usage{
-initgrid(EEZ, Habitats, Breeding, cell_size, proj)
+initgrid(EEZ, cell_size, proj, areas = NA)
 }
 \arguments{
-\item{proj}{}
+\item{areas}{}
 }
 \description{
 Title
