@@ -4,11 +4,12 @@
 \alias{addscenario}
 \title{Title}
 \usage{
-addscenario(p, oldMPA, MPA_coverage = 0.1, replicates = 10, dist = NA,
-  name = "Status_quo", Habitats = FALSE, Breeding = FALSE, cell_size)
+addscenario(domain, included = NA, priority = NA, excluded = NA,
+  MPA_coverage = 0.1, replicates = 10, dist = NA, name = "Status_quo",
+  cell_size, cells)
 }
 \arguments{
-\item{n}{}
+\item{included}{}
 }
 \description{
 Title
