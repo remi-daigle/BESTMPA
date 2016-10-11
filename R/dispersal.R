@@ -16,9 +16,9 @@
 
 dispersal <- function(fish,cm,ages=5:50){
     if(length(ages)==1){
-        fish[,ages+1] <- roundprob(rowSums(fish[,ages+1]*cm))
+        fish[,ages+1] <- roundprob(colSums(fish[,ages+1]*cm))
     } else {
-        fish[,ages+1] <- roundprob(apply(fish[,ages+1],2,function(x) rowSums(x*cm)))
+        fish[,ages+1] <- roundprob(apply(fish[,ages+1],2,function(x) colSums(x*cm)))
     }
     return(fish)
 }
