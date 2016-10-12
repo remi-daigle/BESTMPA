@@ -1,12 +1,4 @@
-# housekeeping
-rm(list=ls())
-if(length(dev.list()["RStudioGD"])>1) dev.off(dev.list()["RStudioGD"])
-# specifiy folder for results
-results_folder <- "D:/BESTMPA_results"
-unlink(results_folder,recursive = T,force=T)
-if(!dir.exists(results_folder)) dir.create(results_folder)
 
-# memory.limit(32608)
 
 require(BESTMPA)
 #### user inputs ####
