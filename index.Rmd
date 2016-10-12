@@ -1,0 +1,22 @@
+---
+title: "BESTMPA"
+author: "Remi Daigle"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Basic description of BESTMPA...
+
+## Housekeeping
+Before getting started, using the housekeeping function will prepare the environment and your file structure for modelling. This function will conveniently create a results folder, clear the environment, figures, delete previous results, and increase the memory limit if desired.
+
+```{r}
+require(BESTMPA)
+results_folder <- "D:/BESTMPA_results"
+housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=TRUE,memorylimit=memory.limit())
+```
+
+
