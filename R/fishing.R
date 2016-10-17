@@ -43,7 +43,7 @@ fishing <- function(fish,quota,ages=4:50,distance,fish_licenses,mpa){
         }
         catchtotal <- Reduce("+",fishcatch)
 
-        if(sum(cttemp-catchtotal)<1) break
+        if(sum(catchtotal-cttemp)<1) break
 
         # print(sum(cttemp-catchtotal))
         catch <- sum(apply(catchtotal[,ages+1],1,function(x) sum(length2weight(age2length(ages))*x)))
@@ -51,7 +51,7 @@ fishing <- function(fish,quota,ages=4:50,distance,fish_licenses,mpa){
         relative_kg <- kg^3/max(kg^3)
         relative_dist <- t(t(distance)/apply(distance,2,max))
         effort <- (1-relative_kg)*relative_dist
-        print(catch)
+        # print(catch)
         # if(catch>quota) break
     }
     return(lapply(fishcatch,roundprob))
