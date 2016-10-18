@@ -10,7 +10,7 @@
 #' @export
 #'
 #' @examples
-generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,Status_quo){
+generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,included){
         # MPA size frequency obtained from WDPA database downloaded from http://www.protectedplanet.net/search?marine=1 in March 2015
         MPAs_mar_REP_M_AREA <- read.csv("data/MPAs_mar_REP_M_AREA.csv")
 
@@ -28,6 +28,6 @@ generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,Status_quo){
             sum((prob_table$cumsum-x)<0)+1
             ])))
         # clip to MPA coverage
-        MPA_sizes <- MPA_sizes[cumsum(MPA_sizes)<(length(p)*MPA_coverage-sum(Status_quo))]
+        MPA_sizes <- MPA_sizes[cumsum(MPA_sizes)<(length(p)*MPA_coverage-gArea(p[included,]))]
         return(MPA_sizes)
 }

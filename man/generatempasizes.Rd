@@ -4,7 +4,7 @@
 \alias{generatempasizes}
 \title{Title}
 \usage{
-generatempasizes(cell_size, cells = 1, p, MPA_coverage, Status_quo)
+generatempasizes(cell_size, cells = 1, p, MPA_coverage, included)
 }
 \arguments{
 \item{MPA_coverage}{}

@@ -17,12 +17,10 @@
 #' @examples
 addscenario <- function(domain,included=NA,priority=NA,excluded=NA,MPA_coverage=0.1,replicates=10,dist=NA,name="Status_quo",cell_size,cells){
 
-    Status_quo <- apply(gCovers(included,domain,byid = TRUE),1,any)|apply(gOverlaps(included,domain,byid = TRUE),1,any)
-
     if(name=="Status_quo"){
 
         for(i in replicates){
-            domain[[paste0("MPA_SQ_",i)]] <- Status_quo
+            domain[[paste0("MPA_SQ_",i)]] <- included
         }
 
         return(domain)
@@ -46,10 +44,10 @@ addscenario <- function(domain,included=NA,priority=NA,excluded=NA,MPA_coverage=
             print(paste("calculating replicate",i))
 
             # set status_quo as MPAs
-            domain[[paste0(name,"_",i)]] <- Status_quo
+            domain[[paste0(name,"_",i)]] <- included
 
             # generate new MPA sizes
-            MPA_sizes <- generatempasizes(cell_size,cells,domain,MPA_coverage,Status_quo)
+            MPA_sizes <- generatempasizes(cell_size,cells,domain,MPA_coverage,included)
 
             # set distances
             if(is.na(dist)){
