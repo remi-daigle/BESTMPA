@@ -28,6 +28,6 @@ generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,included){
             sum((prob_table$cumsum-x)<0)+1
             ])))
         # clip to MPA coverage
-        MPA_sizes <- MPA_sizes[cumsum(MPA_sizes)<(length(p)*MPA_coverage-gArea(p[included,]))]
+        MPA_sizes <- MPA_sizes[cumsum(MPA_sizes)<(length(p)*MPA_coverage-sum(included))]
         return(MPA_sizes)
 }

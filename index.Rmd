@@ -9,7 +9,7 @@ vignette: >
 ---
 ```{r setup, cache=FALSE, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=11, fig.height=11)
+opts_chunk$set(fig.width=7, fig.height=7)
 
 ```
 Basic description of BESTMPA...
@@ -26,8 +26,6 @@ require(igraph)
 require(ggplot2)
 require(tidyverse)
 require(data.table)
-
-opts_chunk$set(fig.width=7, fig.height=7)
 
 results_folder <- "D:/BESTMPA_results"
 housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=TRUE,memorylimit=memory.limit())
@@ -92,7 +90,7 @@ oldMPA <- oldMPA[gArea(oldMPA,byid = TRUE)>=cell_size^2,]
 oldMPA <- apply(gCovers(oldMPA,p,byid = TRUE),1,any)|apply(gOverlaps(oldMPA,p,byid = TRUE),1,any)
 
 # number of replicates
-replicates <- 1:50
+replicates <- 1:10
 
 # target protection level in proportion (e.g. 0.2 is 20% protection)
 MPA_coverage <- 0.10
@@ -106,7 +104,7 @@ This is how the four scenarios were created. This portion of code is a little ti
 ```{r}
 # ```{r create new scenarios, eval=FALSE, include=FALSE}
 #### set status-quo scenario ####
-p <- addscenario(domain=p,included=oldMPA,replicates=replicates,name="Status_quo",cells=cells)
+p <- addscenario(domain=p,included=oldMPA,replicates=replicates,name="MPA_SQ",cells=cells)
 
 # #### set maximum distance ####
 # p <- addscenario(domain=p,included=oldMPA,MPA_coverage=MPA_coverage,replicates=replicates,name="MPA_MD",cell_size=cell_size,cells=cells)
@@ -118,6 +116,7 @@ p <- addscenario(domain=p,included=oldMPA,replicates=replicates,name="Status_quo
 p <- addscenario(domain=p,included=oldMPA,priority=p$Habitats,excluded=p$Breeding,MPA_coverage=MPA_coverage,replicates=replicates,dist=fixdist,name="MPA_TR",cell_size=cell_size,cells=cells)
 
 writeOGR(p,dsn="shapefiles",layer="master_polygon",driver="ESRI Shapefile",overwrite_layer = TRUE)
+
 ```
 
 Instead, I load default grid file that was saved to file to save time.
@@ -163,6 +162,8 @@ maxage <- 20
 # calculate which breeding area is closest to each grid cell
 breeding_near <- apply(gDistance(spTransform(Breeding,proj),p,byid = T),1,which.min)
 
+# initial abundance
+initial_abun=250*10^6
 
 ```
 
@@ -244,87 +245,31 @@ scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))]
 
 ## Loop over scenario and time
 ```{r Loop over scenario and time}
-# ```{r Loop over scenario and time, eval=FALSE, include=FALSE}
+#```{r Loop over scenario and time, eval=FALSE, include=FALSE}
 
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
         gc() # keeps memory from getting clogged
         setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish <- growth(fish,y,tot_time,initial_abun,p,maxage,recruits,M)
         
-        #### initiate `fish` or recruit the `recruits` ####
-        if(y==min(tot_time)){
-            fish <- initpop(initial_abun=250*10^6,cells=length(p),maxage=maxage,rate=0.7)
-            biomass_est_bank <- NULL
-        } else {
-            fish[,1+1:maxage] <- fish[,1:maxage]
-            fish[,1] <- recruits
-        }
+        #### reproduction ####
+        recruits <- reproduction(fish,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
         
-        # check for extinctions
-        if(any(fish<0)) fish[fish<0] <- 0
-        
+        ############################ Dispersal #################################################
         #### adult dispersal ####
         fish <- dispersal(fish,cm=cma,ages=min_age_migration:maxage)
         
-        #### adult mortality ####
-        fish <- mortality(fish,M=sample(M,nrow(fish)),ages=1:maxage)
-        
-        # fish outside the habitat die automatically
-        fish <- fish*p$Habitats
-        
-        #### reproduction ####
-        # generate eggs
-        recruits <- fish2eggs(fish,fecundity=fecundity,age_mat_steepness=age_mat_steepness,age_mat_sigmoid=age_mat_sigmoid,l_to_w_int=l_to_w_int,l_to_w_power=l_to_w_power,Linf_mean=Linf_mean,Linf_SD=Linf_SD,k_mean=k_mean,k_SD=k_SD,t0=t0)
-        
-        # relocate eggs to nearest breeding ground
-        recruits <- data.frame(r=recruits,b=breeding_near,polys=p$Breeding*breeding_near!=0) %>%
-            group_by(b) %>%
-            summarize(rec=sum(r),poly=sum(polys)) %>%
-            mutate(recruits=rec/poly) %>%
-            ungroup() %>%
-            roundprob()
-        recruits <- (left_join(data.frame(b=breeding_near),recruits,by="b")*p$Breeding) %>%
-            dplyr::select(recruits) %>%
-            unlist() %>%
-            matrix()
-        
-        
         #### larval dispersal ####
-        recruits <- dispersal(recruits,cm=cml,ages=0)
+        recruits <- larvaldispersal(recruits,cml,lM,CCs)
         
-        recruits <- mortality(recruits,M=sample(lM,length(recruits)),ages=0)
+        ############################ Harvesting #################################################
+        quota <- estimatequota(fish,maxage,biomass_est_bank,y,tot_time,FMSY,FMSY_buffer)
         
-        # density dependent recruitment
-        recruits <- roundprob(recruits/(1+rowSums(fish)/CCs))
-        recruits[is.nan(recruits)] <- 0
+        fish <- harvest(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,mpaSQ=p$MPA_SQ_1,mpa2020=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder)
         
-        # fishing
-        ages=min_age_catch:maxage
-        
-        biomass <- sum(apply(fish,1,function(x) sum(length2weight(age2length(0:maxage))*x)))
-        
-        biomass_est_bank <- c(rnorm(1,biomass,biomass*0.2),biomass_est_bank)
-        
-        if(length(biomass_est_bank)>biomass_est_n_years) biomass_est_bank <- biomass_est_bank[1:biomass_est_n_years]
-        x <- 1:length(biomass_est_bank)
-        
-        quota <- suppressWarnings(as.numeric(predict(lm(biomass_est_bank ~ x), data.frame(x = length(biomass_est_bank)+1))))*FMSY*FMSY_buffer
-
-        if(!y %in% time) fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p$MPA_SQ_1)
-        if(y %in% time) fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=p[[s]])
-        
-        
-        catch <- Reduce("+",fishcatch)
-        fish <- fish-catch
-        kg <- t(do.call(rbind,lapply(fishcatch,fish2weight,ages)))
-        names(kg) <- names(fish_communities)
-        
-        # writing to disk
-
-        if(y %in% time) write.csv(fish,paste0(results_folder,"/fish_",s,"_",y,".csv"))
-        if(y %in% time) write.csv(fishcatch,paste0(results_folder,"/fishcatch_",s,"_",y,".csv"))
-        if(y %in% time) write.csv(kg,paste0(results_folder,"/kg_",s,"_",y,".csv"))
     }
 }
 
@@ -401,9 +346,9 @@ ggplot(catch_summary,aes(x=as.numeric(year),y=cumsum,colour=scenario))+
     theme_classic()+
     scale_colour_manual(values=c("yellow","blue"))
 
-# ggplot(catch_summary,aes(x=as.numeric(year),y=distanceGV,colour=scenario))+
-#     geom_point(cex=2)+geom_smooth()+
-#     theme_classic()
+ggplot(catch_summary,aes(x=as.numeric(year),y=distanceGV,colour=scenario))+
+    geom_point(cex=2)+geom_smooth()+
+    theme_classic()
 ```
 
 

@@ -5,7 +5,7 @@
 \title{Title}
 \usage{
 addscenario(domain, included = NA, priority = NA, excluded = NA,
-  MPA_coverage = 0.1, replicates = 10, dist = NA, name = "Status_quo",
+  MPA_coverage = 0.1, replicates = 10, dist = NA, name = "MPA_SQ",
   cell_size, cells)
 }
 \arguments{

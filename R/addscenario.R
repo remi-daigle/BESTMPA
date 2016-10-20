@@ -15,12 +15,12 @@
 #' @export
 #'
 #' @examples
-addscenario <- function(domain,included=NA,priority=NA,excluded=NA,MPA_coverage=0.1,replicates=10,dist=NA,name="Status_quo",cell_size,cells){
+addscenario <- function(domain,included=NA,priority=NA,excluded=NA,MPA_coverage=0.1,replicates=10,dist=NA,name="MPA_SQ",cell_size,cells){
 
-    if(name=="Status_quo"){
+    if(name=="MPA_SQ"){
 
         for(i in replicates){
-            domain[[paste0("MPA_SQ_",i)]] <- included
+            domain[[paste0(name,"_",i)]] <- included
         }
 
         return(domain)
