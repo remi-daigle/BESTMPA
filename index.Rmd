@@ -26,6 +26,8 @@ require(igraph)
 require(ggplot2)
 require(tidyverse)
 require(data.table)
+require(gridExtra)
+require(grid)
 
 results_folder <- "D:/BESTMPA_results"
 housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=TRUE,memorylimit=memory.limit())
@@ -90,7 +92,7 @@ oldMPA <- oldMPA[gArea(oldMPA,byid = TRUE)>=cell_size^2,]
 oldMPA <- apply(gCovers(oldMPA,p,byid = TRUE),1,any)|apply(gOverlaps(oldMPA,p,byid = TRUE),1,any)
 
 # number of replicates
-replicates <- 1:10
+replicates <- 1:30
 
 # target protection level in proportion (e.g. 0.2 is 20% protection)
 MPA_coverage <- 0.10
@@ -163,7 +165,7 @@ maxage <- 20
 breeding_near <- apply(gDistance(spTransform(Breeding,proj),p,byid = T),1,which.min)
 
 # initial abundance
-initial_abun=250*10^6
+initial_abun <- 250*10^6
 
 ```
 
@@ -195,7 +197,7 @@ e_fold_larvae <- 2/100000*60*60*24*90*1000
 # adult dispersal kernels are also assumed to be exponential, e_fold_adult (in km) was calculated from data in Lawson & Rose 2000
 e_fold_adult  <- sqrt(74.139*1000)
 # minimium age for adult migration (minimum size is 50 cm) Lawson & Rose 2000
-min_age_migration <- which.min(abs(age2length(1:maxage)-50))
+min_age_migration <- 6
 
 # generate connectivity matrix
 #adult
@@ -232,7 +234,7 @@ FMSY_buffer <- 2/3
 biomass_est_n_years <- 5
 
 # minimium age caught by nets (minimum size is 38 cm) Feekings et al. 2013
-min_age_catch <- which.min(abs(age2length(1:maxage)-38))
+min_age_catch <- 4
 
 # calculate distances from shore
 distance <- gDistance(spTransform(fish_communities,proj),p,byid = T)
@@ -292,63 +294,109 @@ fish_landed_value <- 1.24
 # Social discount rates (choose 3)
 SDR <- c(0.015,0.03,0.06)
 
+textsize <- 10
+# protect_scen <- c("Status_quo","MPAs_maxdist","MPAs_fixed","MPAs_targeted")
+# protect_scen_names <- c("Status Quo", "Maximum Distance", "Fixed Distance" , "Targeted")
+# protect_scen_colour <- c("purple","green","red","blue")
+protect_scen_names <- c("Status Quo","Targeted")
+protect_scen_colour <- c("red","blue")
+
+
+```
+
+```{r data loading}
+# load fish catches
+filenames <- list.files(results_folder,pattern="kg_")
+catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
+catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
+catch_summary <- SDRvalues(catch_summary,t=time,value=catch_summary$netvalue,SDR)
+
+filenames <- list.files(results_folder,pattern="fish_")
+fish_summary <- rbindlist(lapply(filenames,processfish,results_folder))
+
+gathered <- catch_summary %>% 
+    select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
+    gather(SDR,cumsumvalue,starts_with("SDRcumsum"))
+levels(gathered$scenario) <- protect_scen_names
 
 ```
 
 ```{r Plotting}
-# load fish catches
-filenames <- list.files(results_folder,pattern="kg_")
-# filenames <- filenames[c(grep('SQ',filenames),grep('TR',filenames))]
-fileinfo <- substr(filenames,8,nchar(filenames)-4)
-
-catch <- lapply(paste0(results_folder,'/',filenames), fread, col.names=c("cell",paste("community_",names(fish_communities)))) %>%
-    setNames(fileinfo) %>%
-    rbindlist(use.names=TRUE,idcol=TRUE) %>%
-    separate(col=.id,into=c("scenario","replicate","year")) %>%
-    gather(community,kg,starts_with("community_")) %>%
-    ungroup()
 
 
-catch$grossvalue <- catch$kg*fish_landed_value
-
-catch$distancekm <- as.vector(distance)/1000
-
-catch_summary <- catch %>%
-    group_by(scenario,replicate,year) %>%
-    summarise(distanceGV=weighted.mean(distancekm,grossvalue),
-              grossvalue=sum(grossvalue)) %>%
-    ungroup()
-
-catch_summary$distanceGV[is.nan(catch_summary$distanceGV)] <- 0
-
-SQinitialstats <- catch_summary %>%
-    filter(scenario=="SQ",year==min(time)) %>%
-    summarize(distanceGV=mean(distanceGV,na.rm=T),
-              grossvalue=mean(grossvalue,na.rm=T))
-
-fleetfixedcost <- SQinitialstats$grossvalue/Status_quo_profitability*(1-fish_operating_cost_ratio)
-fleetvariablecost <- SQinitialstats$grossvalue/Status_quo_profitability*fish_operating_cost_ratio/SQinitialstats$distanceGV
-
-catch_summary$netvalue <- catch_summary$grossvalue-fleetfixedcost-(fleetvariablecost*catch_summary$distanceGV)
-catch_summary$cumsum <- do.call(c, tapply(catch_summary$netvalue,
-                                          paste0(catch_summary$scenario, catch_summary$replicate),
-                                          FUN=cumsum))
-
-
-
-ggplot(catch_summary,aes(x=as.numeric(year),y=grossvalue,colour=scenario))+
-    geom_point(cex=2)+geom_smooth()+
-    theme_classic()
-
-ggplot(catch_summary,aes(x=as.numeric(year),y=cumsum,colour=scenario))+
-    # geom_point(cex=2)+
-    geom_smooth()+
+########## Figure 3 - plot of biomass over time #################################
+p1 <- ggplot(fish_summary,aes(x=year,y=biomass/1000,colour=scenario))+
+    geom_smooth(cex=2)+
     theme_classic()+
-    scale_colour_manual(values=c("yellow","blue"))
+    theme(legend.position="top",
+          text=element_text(size=textsize))+
+    labs(x="Year",y="Total Stock Biomass (t)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+# ggsave(paste0(results_folder,'/figures/f3_biomass.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+p1
 
-ggplot(catch_summary,aes(x=as.numeric(year),y=distanceGV,colour=scenario))+
-    geom_point(cex=2)+geom_smooth()+
-    theme_classic()
+########## Figure 4 - plot of catch biomass over time #################################
+p1 <- ggplot(catch_summary,aes(x=year,y=kg/1000,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=textsize))+
+    labs(x="Year",y="Total catch (t)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+# ggsave(paste0(results_folder,'/figures/f4_catch.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+p1
+
+########## Figure 5 - distance from shore over time #################################
+p1 <- ggplot(catch_summary,aes(x=year,y=distanceGV/1000,colour=scenario))+
+    geom_smooth(cex=2)+
+    theme_classic()+
+    theme(legend.position="top",
+          text=element_text(size=textsize))+
+    labs(x="Year",y="Mean distance from shore (km)")+
+    scale_colour_manual(values=protect_scen_colour,
+                        labels=protect_scen_names,name="")
+# ggsave(paste0(results_folder,'/figures/f5_distance.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+p1
+
+
+
+########## Figure 6 - Social Discount Rate #################################
+
+
+
+# jpeg(paste0(results_folder,'/figures/f6_SDR.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
+p1 <- ggplot(gathered,aes(x=year,y=cumsumvalue/10^6,colour=scenario,xlab="test"))+
+        geom_smooth(cex=1.5)+
+        theme_classic()+
+        scale_colour_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
+        facet_wrap(~SDR,ncol=1,scale="free_x")+
+        theme(strip.background=element_blank(),
+              legend.position="none",
+              strip.text=element_text(face="bold"),
+              text=element_text(size=textsize))+
+        labs(x="Year",y=expression(paste("Cumulative Net Present Value (10"^"6"," CAD)",sep="")))
+
+p2 <- ggplot(gathered[gathered$year==max(gathered$year),],aes(x=scenario,y=cumsumvalue/10^6,fill=scenario))+
+    # geom_jitter(size=0.5)+
+    # geom_violin(alpha=0.7)+
+        geom_boxplot()+
+        theme_classic()+
+        scale_fill_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
+        facet_wrap(~SDR,ncol=1,scale="free_x")+
+        theme(strip.background=element_blank(),
+              legend.position="none",
+              strip.text=element_text(face="bold"),
+              axis.text.x=element_text(angle=20,hjust=1),
+              text=element_text(size=textsize))+
+        labs(x="",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))
+g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs
+legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+lheight <- sum(legend$height)
+
+grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
+# dev.off()
+
 ```
-
 
