@@ -31,7 +31,7 @@ housekeeping <- function(results_folder="output",env=FALSE,fig=FALSE,delete=FALS
 
     tmp <- ls(envir=globalenv())
 
-    tmp <- tmp[tmp!="results_folder"]
+    tmp <- tmp[tmp!="results_folder"&tmp!="newrun"]
 
     if(length(tmp)>0&env) rm(list=tmp,envir=globalenv())
 }
