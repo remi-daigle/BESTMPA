@@ -90,6 +90,7 @@ cells=3
 
 # default projection
 proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+EEZ <- spTransform(EEZ,proj)
 
 # create grid
 p <- initgrid(EEZ,cell_size,proj,areas=c(Habitats=Habitats,Breeding=Breeding))
@@ -142,6 +143,49 @@ writeOGR(p,dsn="shapefiles",layer="master_polygon",driver="ESRI Shapefile",overw
 
 ```{r load scenario, results='hide'}
 p <- readOGR(dsn="shapefiles",layer="master_polygon")
+
+```
+Or you can plot all of the scenarios statically
+```{r}
+protect_scen_colour <- c("purple","green","red","blue")
+protect_scen_names <- c("Status Quo", "Maximum Distance", "Fixed Distance" , "Targeted")
+res <- 400
+qual <- 100
+textsize <- 10
+# list scenarios for looping
+scenarios <- names(p)[grep("MPA_",names(p))] # assumes all scenarios begin with "MPA_"
+scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))]
+if(!file.exists(paste0(results_folder,"/figures"))) dir.create(paste0(results_folder,"/figures"))
+
+for(r in replicates){
+    if(r==1){
+        jpeg(paste0(results_folder,'/figures/f1_scenarios.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
+    } else {
+        jpeg(paste0(results_folder,'/figures/fA',r-1,'_scenarios.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
+    }
+    
+    layout(matrix(c(1,2,3,4),nrow=2))
+    par(mar=c(1,1,1,1))
+    nam <- names(p)[grep(paste0("MPA_.._",r,"$"),names(p))]
+    for(s in nam){
+        plot(EEZ)
+        plot(p[p[[s]]==1,],col=protect_scen_colour[nam==s],add=T,border='transparent')
+        title(protect_scen_names[which(nam==s)])
+    }
+    dev.off()
+}
+```
+
+```{r,echo=FALSE}
+r=1    
+layout(matrix(c(1,2,3,4),nrow=2))
+par(mar=c(1,1,1,1))
+nam <- names(p)[grep(paste0("MPA_.._",r,"$"),names(p))]
+for(s in nam){
+    plot(EEZ)
+    plot(p[p[[s]]==1,],col=protect_scen_colour[nam==s],add=T,border='transparent')
+    title(protect_scen_names[which(nam==s)])
+}
 ```
 
 # Looping for time and scenarios
@@ -265,7 +309,7 @@ scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))]
 
 ## Loop over scenario and time
 If using the [index.Rmd](https://github.com/remi-daigle/BESTMPA/blob/gh-pages/index.Rmd) and want to generate new data, remove the `eval=FALSE` option from the chunk below
-```{r Loop over scenario and time, results='hide',eval=TRUE}
+```{r Loop over scenario and time, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -312,10 +356,6 @@ fish_landed_value <- 1.24
 SDR <- c(0.015,0.03,0.06)
 
 textsize <- 10
-protect_scen_names <- c("Status Quo", "Maximum Distance", "Fixed Distance" , "Targeted")
-protect_scen_colour <- c("purple","green","red","blue")
-# protect_scen_names <- c("Status Quo","Targeted")
-# protect_scen_colour <- c("red","blue")
 
 
 ```
@@ -349,7 +389,7 @@ p1 <- ggplot(fish_summary,aes(x=year,y=biomass/1000,colour=scenario))+
     labs(x="Year",y="Total Stock Biomass (t)")+
     scale_colour_manual(values=protect_scen_colour,
                         labels=protect_scen_names,name="")
-# ggsave(paste0(results_folder,'/figures/f3_biomass.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+ggsave(paste0(results_folder,'/figures/f3_biomass.jpg'),p1,height=8,width=17,units="cm",dpi=res)
 p1
 
 ########## Figure 4 - plot of catch biomass over time #################################
@@ -361,7 +401,7 @@ p1 <- ggplot(catch_summary,aes(x=year,y=kg/1000,colour=scenario))+
     labs(x="Year",y="Total catch (t)")+
     scale_colour_manual(values=protect_scen_colour,
                         labels=protect_scen_names,name="")
-# ggsave(paste0(results_folder,'/figures/f4_catch.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+ggsave(paste0(results_folder,'/figures/f4_catch.jpg'),p1,height=8,width=17,units="cm",dpi=res)
 p1
 
 ########## Figure 5 - distance from shore over time #################################
@@ -373,13 +413,13 @@ p1 <- ggplot(catch_summary,aes(x=year,y=distanceGV/1000,colour=scenario))+
     labs(x="Year",y="Mean distance from shore (km)")+
     scale_colour_manual(values=protect_scen_colour,
                         labels=protect_scen_names,name="")
-# ggsave(paste0(results_folder,'/figures/f5_distance.jpg'),p1,height=8,width=17,units="cm",dpi=res)
+ggsave(paste0(results_folder,'/figures/f5_distance.jpg'),p1,height=8,width=17,units="cm",dpi=res)
 p1
 
 
 
 ########## Figure 6 - Social Discount Rate #################################
-# jpeg(paste0(results_folder,'/figures/f6_SDR.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
+jpeg(paste0(results_folder,'/figures/f6_SDR.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
 p1 <- ggplot(gathered,aes(x=year,y=cumsumvalue/10^6,colour=scenario,xlab="test"))+
         geom_smooth(cex=1.5)+
         theme_classic()+
@@ -409,7 +449,12 @@ legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
 lheight <- sum(legend$height)
 
 grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
-# dev.off()
+dev.off()
 
 ```
+```{r,echo=FALSE}
+grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
+
+```
+
 
