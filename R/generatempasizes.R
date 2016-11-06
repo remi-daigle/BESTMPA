@@ -3,17 +3,15 @@
 #' @param cell_size
 #' @param p
 #' @param cells
-#' @param Status_quo
 #' @param MPA_coverage
+#' @param included
+#' @param MPAs_AREA Vector of MPA size frequency in m^2. Defaults to MPA szie frequency obtained from WDPA database downloaded from http://www.protectedplanet.net/search?marine=1 in March 2015
 #'
 #' @return
 #' @export
 #'
 #' @examples
-generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,included){
-        # MPA size frequency obtained from WDPA database downloaded from http://www.protectedplanet.net/search?marine=1 in March 2015
-        MPAs_mar_REP_M_AREA <- read.csv("data/MPAs_mar_REP_M_AREA.csv")
-
+generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,included,MPAs_AREA=MPAs_mar_REP_M_AREA){
         # remove MPA's smaller than grid size and larger than entire protected area
         MPAs_mar_REP_M_AREA <- MPAs_mar_REP_M_AREA/cell_size^2*cells
         MPAs_mar_REP_M_AREA <- round(log10(MPAs_mar_REP_M_AREA[MPAs_mar_REP_M_AREA>=1&MPAs_mar_REP_M_AREA<length(p)*MPA_coverage]),2)

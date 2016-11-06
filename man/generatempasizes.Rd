@@ -4,10 +4,11 @@
 \alias{generatempasizes}
 \title{Title}
 \usage{
-generatempasizes(cell_size, cells = 1, p, MPA_coverage, included)
+generatempasizes(cell_size, cells = 1, p, MPA_coverage, included,
+  MPAs_AREA = MPAs_mar_REP_M_AREA)
 }
 \arguments{
-\item{MPA_coverage}{}
+\item{MPAs_AREA}{Vector of MPA size frequency in m^2. Defaults to MPA szie frequency obtained from WDPA database downloaded from http://www.protectedplanet.net/search?marine=1 in March 2015}
 }
 \description{
 Title
