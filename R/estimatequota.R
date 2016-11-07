@@ -1,15 +1,24 @@
-#' Title
+#' Estimating the quota
+#'
+#' Returns the fishing quota given the biomass in \code{fish} using Fisheries mortality at Maximum Sustainable Yield with a precautionary buffer. Uses a linear projection of the last 5 years (if available; stored in the cache)
 #'
 #' @param fish
-#' @param maxage
-#' @param biomass_est_bank
-#'
+#' @param maxage Maximum age considered in \code{fish} matrix
+#' @param y current year
+#' @param tot_time The time over which the model is run including spin-up time
+#' @param FMSY Fisheries mortality at Maximum Sustainable Yield
+#' @param FMSY_buffer quota set to fraction of FMSY as per precautionary principle
+#' @inheritParams reproduction
 #' @return
 #' @export
 #'
 #' @examples
-#'
-estimatequota <- function(fish,maxage,biomass_est_bank,y,tot_time,FMSY,FMSY_buffer){
+#' # create a fish matrix
+#' fish <- initpop(initial_abun=250*10^6,cells=length(BESTMPA_domain),maxage=50,rate=0.7)
+#' # quota
+#' quota <- estimatequota(fish,maxage=20,y=2001,tot_time=2001:2071,FMSY=0.28,FMSY_buffer=0.667)
+
+estimatequota <- function(fish,maxage,y,tot_time,FMSY,FMSY_buffer){
     if(y==min(tot_time)){
         assign('biomass_est_bank',NULL,envir=.BESTMPAcacheEnv)
     }

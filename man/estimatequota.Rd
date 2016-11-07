@@ -2,17 +2,28 @@
 % Please edit documentation in R/estimatequota.R
 \name{estimatequota}
 \alias{estimatequota}
-\title{Title}
+\title{Estimating the quota}
 \usage{
-estimatequota(fish, maxage, biomass_est_bank, y, tot_time, FMSY, FMSY_buffer)
+estimatequota(fish, maxage, y, tot_time, FMSY, FMSY_buffer)
 }
 \arguments{
-\item{biomass_est_bank}{}
+\item{maxage}{Maximum age considered in \code{fish} matrix}
+
+\item{y}{current year}
+
+\item{tot_time}{The time over which the model is run including spin-up time}
+
+\item{FMSY}{Fisheries mortality at Maximum Sustainable Yield}
+
+\item{FMSY_buffer}{quota set to fraction of FMSY as per precautionary principle}
 }
 \description{
-Title
+Returns the fishing quota given the biomass in \code{fish} using Fisheries mortality at Maximum Sustainable Yield with a precautionary buffer. Uses a linear projection of the last 5 years (if available; stored in the cache)
 }
 \examples{
-
+# create a fish matrix
+fish <- initpop(initial_abun=250*10^6,cells=length(BESTMPA_domain),maxage=50,rate=0.7)
+# quota
+quota <- estimatequota(fish,maxage=20,y=2001,tot_time=2001:2071,FMSY=0.28,FMSY_buffer=0.667)
 }
 
