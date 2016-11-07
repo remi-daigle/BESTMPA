@@ -2,15 +2,27 @@
 % Please edit documentation in R/housekeeping.R
 \name{housekeeping}
 \alias{housekeeping}
-\title{Title}
+\title{Prepare environment and file structure}
 \usage{
 housekeeping(results_folder = "output", env = FALSE, fig = FALSE,
-  delete = FALSE, memorylimit = memory.limit())
+  delete = FALSE, memorylimit = 16304)
 }
 \arguments{
-\item{memorylimit}{}
+\item{env}{(logical) If TRUE, clears the environment}
+
+\item{fig}{(logical) If TRUE, clears the figures}
+
+\item{delete}{(logical) If TRUE, deletes the all the files in the results_folder. WARNING: files are permanently deleted, they will not be in your "recycling bin". Only use TRUE if you are certain you want to delete the files}
+
+\item{memorylimit}{increases the limit in force on the total memory allocation for Windows machines.}
+}
+\value{
+NA
 }
 \description{
-Title
+Prepares the environment and your file structure for modelling. This function will conveniently create a results folder, clear the environment, figures, delete previous results, and increase the memory limit if desired.
+}
+\examples{
+housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=FALSE,memorylimit=16304)
 }
 
