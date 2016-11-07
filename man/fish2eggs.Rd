@@ -36,8 +36,9 @@ fish2eggs(fish, fecundity = 0.5 * 10^6, age_mat_steepness = 2.5,
 Generates eggs from fish, eggs remain in parents' cell Number of eggs produced is based on the age to length to weight relationships, the age at maturity, and fecundity levels.
 }
 \examples{
-
-
-
+# create a fish matrix
+fish <- initpop(initial_abun=250*10^6,cells=length(BESTMPA_domain),maxage=50,rate=0.7)
+# create eggs
+eggs <- fish2eggs(fish,fecundity=0.5*10^6,age_mat_steepness=2.5,age_mat_sigmoid=4,l_to_w_int=0.000011,l_to_w_power=2.91,Linf_mean=112.03,Linf_SD=10.46/1.96,k_mean=0.13,k_SD=0.021/196,t0=0.18)
 }
 
