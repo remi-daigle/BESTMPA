@@ -1,20 +1,24 @@
-#' Title
+#' Initiate the connectivity matrices
 #'
-#' @param p
-#' @param e_fold
+#' @despcription generates a connectivity matrix for the model domain based on an exponential dispersal kernel
+#'
+#' @param domain
+#' @param e_fold The e-folding scale for dispersal in m (the distance at which there will be fewer larvae/adults dispersed from a central point by a factor of e)
 #' @param cell_size
-#'
+#' @inheritParams addscenario
+
 #' @return
 #' @export
 #'
 #' @examples
-initcm <- function(p,e_fold,cell_size){
+#' initcm(domain=BESTMPA_domain,e_fold=75000,cell_size=20000)
+initcm <- function(domain,e_fold,cell_size){
     require(igraph)
     require(spdep)
     require(dplyr)
 
-    nb <- poly2nb(p,snap=100)
-    gr <- spdf2graph(p,nb)
+    nb <- poly2nb(domain,snap=100)
+    gr <- spdf2graph(domain,nb)
 
     distance_matrix <- round(shortest.paths(gr,c(1:4779),c(1:4779))/cell_size)
 
