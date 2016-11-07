@@ -1,14 +1,21 @@
-#' Title
+#' Initiate Grid
 #'
-#' @param EEZ
-#' @param cell_size
-#' @param proj
-#' @param areas
+#' @description Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain.
 #'
-#' @return
+#' @param EEZ A SpatialPolygonsDataFrame of the model domain
+#' @param cell_size cell size of the grid to be created
+#' @param proj A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation
+#' @param areas a named list of areas to include within the dataframe of the grid SpatialPolygonsDataFrame. (e.g. areas=c(Habitats=Habitats,Breeding=Breeding))
+#'
+#' @return SpatialPolygonsDataFrame
 #' @export
+#' @import rgdal
+#' @import rgeos
+#' @import Grid2Polygons
 #'
 #' @examples
+#' proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+#' p <- initgrid(EEZ=EEZ,cell_size=20000,proj=proj,areas=c(Habitats=Habitats,Breeding=Breeding))
 initgrid <- function(EEZ,cell_size,proj,areas=NA){
     # browser()
     if(is.null(names(areas))) warning("areas are not named (e.g. areas=c(Breeding=Breeding))")

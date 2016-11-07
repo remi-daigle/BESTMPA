@@ -2,14 +2,27 @@
 % Please edit documentation in R/initgrid.R
 \name{initgrid}
 \alias{initgrid}
-\title{Title}
+\title{Initiate Grid}
 \usage{
 initgrid(EEZ, cell_size, proj, areas = NA)
 }
 \arguments{
-\item{areas}{}
+\item{EEZ}{A SpatialPolygonsDataFrame of the model domain}
+
+\item{cell_size}{cell size of the grid to be created}
+
+\item{proj}{A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation}
+
+\item{areas}{a named list of areas to include within the dataframe of the grid SpatialPolygonsDataFrame. (e.g. areas=c(Habitats=Habitats,Breeding=Breeding))}
+}
+\value{
+SpatialPolygonsDataFrame
 }
 \description{
-Title
+Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain.
+}
+\examples{
+proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+p <- initgrid(EEZ=EEZ,cell_size=20000,proj=proj,areas=c(Habitats=Habitats,Breeding=Breeding))
 }
 
