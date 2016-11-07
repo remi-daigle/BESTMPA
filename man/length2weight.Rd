@@ -2,14 +2,21 @@
 % Please edit documentation in R/length2weight.R
 \name{length2weight}
 \alias{length2weight}
-\title{Title}
+\title{Calculate weight from length}
 \usage{
 length2weight(length, l_to_w_int = 1.1e-05, l_to_w_power = 2.91)
 }
 \arguments{
-\item{l_to_w_power}{}
+\item{length}{fish length in cm. can be easily calculated using \code{\link{age2length}}}
+
+\item{l_to_w_int}{The intercept in the Length-weight relationship}
+
+\item{l_to_w_power}{The power in the Length-weight relationship}
 }
 \description{
-Title
+Calculates weight from lenght using the formula \code{weight <- l_to_w_int * length^l_to_w_power}
+}
+\examples{
+weight <- length2weight(length=50,l_to_w_int=0.000011,l_to_w_power=2.91)
 }
 
