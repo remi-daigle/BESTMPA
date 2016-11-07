@@ -8,12 +8,27 @@ age2length(t = 0:50, Linf_mean = 112.03, Linf_SD = 10.46/1.96,
   k_mean = 0.13, k_SD = 0.021/196, t0 = 0.18)
 }
 \arguments{
-\item{t}{is the age of the fish}
+\item{t}{The age of the fish (year)}
 
-\item{t0}{}
+\item{Linf_mean}{Von Bertalanffy growth model parameter - mean asymptotic length (cm)}
+
+\item{Linf_SD}{Von Bertalanffy growth model parameter - standard deviation asymptotic length (cm)}
+
+\item{k_mean}{Von Bertalanffy growth model parameters - mean growth coefficient (1/year)}
+
+\item{k_SD}{Von Bertalanffy growth model parameters - standard deviation growth coefficient (1/year)}
+
+\item{t0}{Von Bertalanffy growth model parameters - x intercept (year)}
 }
 \description{
-Von Bertalanffy growth model parameters (Knickle and Rose 2013)
+Converts fish age to length using Von Bertalanffy growth model parameters (Knickle and Rose 2013)
 Lt = Linf * {1-exp(-k*(t-t0))}, where Lt is length (cm) at age t (year), Linf is the asymptotic length (cm), k is the VB growth coefficient (1/year), and t0 is the x intercept (year). Linf = 112.03 (95% CI = 10.46). k = 0.13 (95% CI = 0.021). t0 = 0.18).
+}
+\examples{
+# one t at a time
+age2length(t = 1, Linf_mean = 112.03, Linf_SD = 10.46/1.96,k_mean = 0.13, k_SD = 0.021/196, t0 = 0.18)
+
+# multiple t at a time
+age2length(t = 0:50, Linf_mean = 112.03, Linf_SD = 10.46/1.96,k_mean = 0.13, k_SD = 0.021/196, t0 = 0.18)
 }
 
