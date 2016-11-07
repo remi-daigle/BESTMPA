@@ -1,16 +1,31 @@
-#' Title
+#' Go fish!
+#'
+#' Creates a list of \code{fish} that were caught for each community
 #'
 #' @param fish
-#' @param quota
-#' @param ages
-#' @param fish_licenses
-#' @param mpa
-#' @param distance
+#' @param quota fishable quota, can be estimated using \code{link{estimatequota}}
+#' @param ages age of catchable fish
+#' @param fish_licenses number of licenses per region in \code{fish_communities}
+#' @param mpa Logical vector, TRUE if closed to fishing
+#' @param distance matrix of distance from each cell to each \code{fish_communities}
+#' @inheritParams dispersal
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' # create a fish matrix
+#' fish <- initpop(initial_abun=250*10^6,cells=length(BESTMPA_domain),maxage=50,rate=0.7)
+#' # calculate distances from shore
+#' distance <- gDistance(spTransform(fish_communities,proj),BESTMPA_domain,byid = T)
+#' # number of licenses per region in fish_communities
+#' fish_licenses <- c(866, 4714, 3002, 879, 963)
+#' # define MPAs
+#' mpa <- sample(c(TRUE,FALSE),length(BESTMPA_domain),replace=TRUE)
+#' # quota
+#' quota <- estimatequota(fish,maxage=20,y=2001,tot_time=2001:2071,FMSY=0.28,FMSY_buffer=0.667)
+#' # go fishing!
+#' fishcatch <- fishing(fish,quota,ages=4:50,distance,fish_licenses,mpa)
 fishing <- function(fish,quota,ages=4:50,distance,fish_licenses,mpa){
     # browser()
     haul <- quota/sum(fish_licenses)
