@@ -11,6 +11,7 @@
 #' @export
 #'
 #' @examples
+#' generatempasizes(cell_size=20000,cells=1,domain=BESTMPA_domain,MPA_coverage=0.1,included=oldMPA)
 generatempasizes <- function(cell_size,cells=1,p,MPA_coverage,included,MPAs_AREA=MPAs_mar_REP_M_AREA){
         # remove MPA's smaller than grid size and larger than entire protected area
         MPAs_mar_REP_M_AREA <- MPAs_mar_REP_M_AREA/cell_size^2*cells

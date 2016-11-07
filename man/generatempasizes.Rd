@@ -13,4 +13,7 @@ generatempasizes(cell_size, cells = 1, p, MPA_coverage, included,
 \description{
 Title
 }
+\examples{
+generatempasizes(cell_size=20000,cells=1,domain=BESTMPA_domain,MPA_coverage=0.1,included=oldMPA)
+}
 
