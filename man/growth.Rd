@@ -4,10 +4,10 @@
 \alias{growth}
 \title{Title}
 \usage{
-growth(fish, y, tot_time, initial_abun, p, maxage, recruits, M)
+growth(fish, y, tot_time, initial_abun, domain, maxage, recruits, M)
 }
 \arguments{
-\item{M}{}
+\item{domain}{}
 }
 \description{
 Title
