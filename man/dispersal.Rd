@@ -14,7 +14,7 @@ dispersal(fish, cm, ages = 5:50)
 \item{ages}{age of fish to be dispersed}
 }
 \description{
-Disperses individuals of specified \code{ages} according to a user defined connectivity matrix.
+Disperses individuals of specified \code{ages} according to a user defined connectivity matrix. Consider using the function \code{\link{larvaldispersal}} for dispersing larvae as that function also incorporates mortality linked to habitat carrying capacity.
 }
 \examples{
 
@@ -29,5 +29,9 @@ fish <- dispersal(fish,cm,ages=5:50)
 cm <- initcm(domain=BESTMPA_domain,e_fold=75000,cell_size=20000)
 fish <- initpop(initial_abun=250*10^6,cells=length(BESTMPA_domain),maxage=50,rate=0.7)
 fish <- dispersal(fish,cm,ages=5:50)
+
+}
+\seealso{
+\code{\link{larvaldispersal}}
 }
 
