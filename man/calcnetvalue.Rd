@@ -2,14 +2,23 @@
 % Please edit documentation in R/calcnetvalue.R
 \name{calcnetvalue}
 \alias{calcnetvalue}
-\title{Title}
+\title{Calculate net value}
 \usage{
 calcnetvalue(catch_summary, Status_quo_profitability, fish_operating_cost_ratio)
 }
 \arguments{
-\item{fish_operating_cost_ratio}{}
+\item{catch_summary}{A merged dataframe of all the 'kg' output files}
+
+\item{Status_quo_profitability}{The ratio of the landed value of the catch to the total operating costs for the Mixed Fishery}
+
+\item{fish_operating_cost_ratio}{The ratio of operating cost that are variable with distance (labour and fuel) to the total operating costs for the Mixed Fishery}
 }
 \description{
-Title
+Calculates the net value of the model output (This function cannot work without model output). Uses the \code{Status_quo_profitability} ratio and the weighted mean of the distance travelled to get a fish (weighted by the catch gross value), and the \code{fish_operating_cost_ratio} to determine the relative profitability of scenarios
+}
+\examples{
+filenames <- list.files(results_folder,pattern="kg_")
+catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
+catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
 }
 
