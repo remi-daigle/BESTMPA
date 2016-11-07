@@ -2,15 +2,24 @@
 % Please edit documentation in R/progressBar.R
 \name{progressBar}
 \alias{progressBar}
-\title{Title}
+\title{Create progress bar}
 \usage{
 progressBar(title = "R progress bar", label = "", min = 0, max = 1,
   initial = 0, width = 300)
 }
 \arguments{
-\item{width}{}
+\item{title}{character strings, giving the window title and the
+    label on the dialog box respectively.}
+
+\item{min}{(finite) numeric values for the extremes of the
+    progress bar.}
+
+\item{initial}{initial or new value for the progress bar.}
+
+\item{width}{the width of the progress bar in pixels: the dialog box
+    will be 40 pixels wider (plus frame).}
 }
 \description{
-Title
+OS agnostic wrapper function for utils::winProgressBar and tcltk::tkProgressBar
 }
 

@@ -2,14 +2,17 @@
 % Please edit documentation in R/setProgressBar.R
 \name{setProgressBar}
 \alias{setProgressBar}
-\title{Title}
+\title{Set progress bar}
 \usage{
 setProgressBar(pb, value, title = NULL, label = NULL)
 }
 \arguments{
-\item{label}{}
+\item{pb}{an object of class \code{"winProgressBar"}.}
+
+\item{title}{character strings, giving the window title and the
+    label on the dialog box respectively.}
 }
 \description{
-Title
+OS agnostic wrapper function for utils::setWinProgressBar and tcltk::setTkProgressBar
 }
 

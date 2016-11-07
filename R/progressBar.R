@@ -1,14 +1,16 @@
-#' Title
+#' Create progress bar
 #'
-#' @param title
-#' @param label
-#' @param min
-#' @param max
-#' @param initial
+#' @description OS agnostic wrapper function for utils::winProgressBar and tcltk::tkProgressBar
+#'
+#' @param title,label
+#' @param min,max
+#' @param initial,value
 #' @param width
+#' @inheritParams utils::winProgressBar
 #'
 #' @return
 #' @export
+#' @import tcltk
 #'
 #' @examples
 progressBar <- function(title = "R progress bar", label = "",
