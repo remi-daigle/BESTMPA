@@ -12,7 +12,7 @@
 processkg <- function(fn,results_folder,distance,fish_landed_value){
     kgs <- as.matrix(fread(paste0(results_folder,'/',fn)[1],
                           col.names=c("cell",paste("community_",dimnames(distance)[[2]]))) %>%
-                        select(starts_with("community")))
+                        dplyr::select(starts_with("community")))
 
     underscores <- grep("_",unlist(strsplit(fn,"")))
     start <- underscores[length(underscores)-2]+1

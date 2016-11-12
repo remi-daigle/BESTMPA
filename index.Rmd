@@ -11,7 +11,6 @@ vignette: >
 library(knitr)
 opts_chunk$set(fig.width=7, fig.height=7)
 ```
-# Bio-Economic Selection Toolbox for Marine Protected Areas - R package
 Thank you for your interest in the R package for the bioeconomic evaluation of MPA network design! If you haven't already done so, please refer to the [manuscript](https://f1000research.com/articles/4-1234/v1) describing the model results.
 
 ## Usage
@@ -42,6 +41,7 @@ require(gridExtra)
 require(grid)
 require(spdep)
 require(Matrix)
+require(Grid2Polygons)
 ```
 
 ## Housekeeping
@@ -49,7 +49,7 @@ Before getting started, using the housekeeping function will prepare the environ
 
 ```{r housekeeping, message=FALSE}
 results_folder <- "D:/BESTMPA_results"
-housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
+housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=TRUE,memorylimit=memory.limit())
 
 ```
 
@@ -86,7 +86,7 @@ Define `cell_size` in m, minimum size of MPA's in number of `cells`, default pro
 cell_size <- 20000
 
 # minimum size of MPA
-cells=3
+cells=1
 
 # default projection
 proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -98,7 +98,6 @@ p <- initgrid(EEZ,cell_size,proj,areas=c(Habitats=Habitats,Breeding=Breeding))
 plot(p)
 plot(p[p$Habitats==1,],col='green',add=T)
 plot(p[p$Breeding==1,],col='yellow',add=T)
-
 ```
 
 ### Create protection scenarios
@@ -114,7 +113,7 @@ oldMPA <- oldMPA[gArea(oldMPA,byid = TRUE)>=cell_size^2,]
 oldMPA <- apply(gCovers(oldMPA,p,byid = TRUE),1,any)|apply(gOverlaps(oldMPA,p,byid = TRUE),1,any)
 
 # number of replicates
-replicates <- 1:50
+replicates <- 1:100
 
 # target protection level in proportion (e.g. 0.2 is 20% protection)
 MPA_coverage <- 0.10
@@ -125,7 +124,7 @@ fixdist <- 75000
 
 
 This is how the four scenarios were created. This portion of code is a little time consuming; therefore, I write the grid to file. If using the [index.Rmd](https://github.com/remi-daigle/BESTMPA/blob/gh-pages/index.Rmd) and want to generate new scenarios, remove the `eval=FALSE` option from the chunk below
-```{r create new scenario, results='hide',eval=FALSE}
+```{r create new scenario, results='hide'}
 #### set status-quo scenario ####
 p <- addscenario(domain=p,included=oldMPA,replicates=replicates,name="MPA_SQ",cells=cells)
 
@@ -309,7 +308,7 @@ scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))]
 
 ## Loop over scenario and time
 If using the [index.Rmd](https://github.com/remi-daigle/BESTMPA/blob/gh-pages/index.Rmd) and want to generate new data, remove the `eval=FALSE` option from the chunk below
-```{r Loop over scenario and time, results='hide',eval=FALSE}
+```{r Loop over scenario and time, results='hide'}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -329,9 +328,9 @@ for(s in scenarios){
         recruits <- larvaldispersal(recruits,cml,lM,CCs)
         
         ############################ Harvesting #################################################
-        quota <- estimatequota(fish,maxage,biomass_est_bank,y,tot_time,FMSY,FMSY_buffer)
+        quota <- estimatequota(fish,maxage,y,tot_time,FMSY,FMSY_buffer)
         
-        fish <- harvest(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,mpaSQ=p$MPA_SQ_1,mpa2020=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder)
+        fish <- harvest(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time)
         
     }
 }
@@ -371,7 +370,7 @@ filenames <- list.files(results_folder,pattern="fish_")
 fish_summary <- rbindlist(lapply(filenames,processfish,results_folder))
 
 gathered <- catch_summary %>% 
-    select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
+    dplyr::select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
     gather(SDR,cumsumvalue,starts_with("SDRcumsum"))
 levels(gathered$scenario) <- protect_scen_names
 

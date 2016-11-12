@@ -33,7 +33,7 @@ addscenario(domain, included = NA, priority = NA, excluded = NA,
 SpatialPolygonsDataFrame
 }
 \description{
-Adds protection scenarios to the SpatialPolygonsDataFrame grid
+Adds protection scenarios to the SpatialPolygonsDataFrame grid. Variables in the dataframe of the SpatialPolygonsDataFrame that should otherwise be logical (e.g. scenarios) are converted to numeric since logical variables are incompatible with ESRI shapefiles.
 }
 \examples{
 proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"

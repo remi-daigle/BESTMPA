@@ -1,6 +1,6 @@
 #' Initiate Grid
 #'
-#' @description Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain.
+#' @description Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain. Variables in the dataframe of the SpatialPolygonsDataFrame that should otherwise be logical (e.g. areas) are converted to numeric since logical variables are incompatible with ESRI shapefiles.
 #'
 #' @param EEZ A SpatialPolygonsDataFrame of the model domain
 #' @param cell_size cell size of the grid to be created
@@ -55,7 +55,7 @@ initgrid <- function(EEZ,cell_size,proj,areas=NA){
     if(!any(is.na(areas))){
         for(i in seq_along(areas)){
             areas[[i]] <- apply(gIntersects(areas[[i]],p,byid=T),1,any)
-            p@data <- data.frame(p@data,areas[[i]])
+            p@data <- data.frame(p@data,as.numeric(areas[[i]]))
         }
         names(p@data) <- c("cell_ID",names(areas))
     }

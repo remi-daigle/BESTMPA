@@ -19,7 +19,7 @@ initgrid(EEZ, cell_size, proj, areas = NA)
 SpatialPolygonsDataFrame
 }
 \description{
-Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain.
+Initiates a SpatialPolygonsDataFrame grid that will be used as the model domain. Variables in the dataframe of the SpatialPolygonsDataFrame that should otherwise be logical (e.g. areas) are converted to numeric since logical variables are incompatible with ESRI shapefiles.
 }
 \examples{
 proj  <- "+proj=utm +zone=20 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
