@@ -49,7 +49,7 @@ Before getting started, using the housekeeping function will prepare the environ
 
 ```{r housekeeping, message=FALSE}
 results_folder <- "D:/BESTMPA_results"
-housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=TRUE,memorylimit=memory.limit())
+housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
 
 ```
 
@@ -124,7 +124,7 @@ fixdist <- 75000
 
 
 This is how the four scenarios were created. This portion of code is a little time consuming; therefore, I write the grid to file. If using the [index.Rmd](https://github.com/remi-daigle/BESTMPA/blob/gh-pages/index.Rmd) and want to generate new scenarios, remove the `eval=FALSE` option from the chunk below
-```{r create new scenario, results='hide'}
+```{r create new scenario, results='hide',eval=FALSE}
 #### set status-quo scenario ####
 p <- addscenario(domain=p,included=oldMPA,replicates=replicates,name="MPA_SQ",cells=cells)
 
@@ -175,7 +175,7 @@ for(r in replicates){
 }
 ```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE, eval=FALSE}
 r=1    
 layout(matrix(c(1,2,3,4),nrow=2))
 par(mar=c(1,1,1,1))
@@ -308,7 +308,7 @@ scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))]
 
 ## Loop over scenario and time
 If using the [index.Rmd](https://github.com/remi-daigle/BESTMPA/blob/gh-pages/index.Rmd) and want to generate new data, remove the `eval=FALSE` option from the chunk below
-```{r Loop over scenario and time, results='hide'}
+```{r Loop over scenario and time, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
