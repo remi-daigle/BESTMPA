@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+BESTMPA_results*
+BESTMPA_sensitivity*

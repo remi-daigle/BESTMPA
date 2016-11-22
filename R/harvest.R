@@ -13,6 +13,7 @@
 #' @param results_folder Path to the directory where results are stored
 #' @param y current year
 #' @param time years during which model results are recorded (i.e. not during spin-up time)
+#' @suffix (optional) character string to add to all files written by function.
 #' @inheritParams fishing
 #' @inheritParams dispersal
 #'
@@ -33,7 +34,7 @@
 #' quota <- estimatequota(fish,maxage=20,y=2001,tot_time=2001:2071,FMSY=0.28,FMSY_buffer=0.667)
 #' # go fishing!
 #' fish <- harvest(fish,quota,ages=4:20,distance,fish_licenses,mpabefore=nompa,mpaafter=mpa,writefish=FALSE,writefishcatch=FALSE,writekg=TRUE,results_folder='',y=2001,time=time)
-harvest <- function(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore,mpaafter,writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y,time){
+harvest <- function(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore,mpaafter,writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y,time,suffix=NA){
     if(!y %in% time) fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=mpabefore)
     if(y %in% time) fishcatch <- fishing(fish,quota,ages,distance,fish_licenses,mpa=mpaafter)
 
@@ -48,10 +49,15 @@ harvest <- function(fish,quota,ages=min_age_catch:maxage,distance,fish_licenses,
     names(kg) <- names(fish_communities)
 
     # writing to disk
-
-    if(y %in% time & writefish) write.csv(fish,paste0(results_folder,"/fish_",s,"_",y,".csv"))
-    if(y %in% time & writefishcatch) write.csv(catch,paste0(results_folder,"/fishcatch_",s,"_",y,".csv"))
-    if(y %in% time & writekg) write.csv(kg,paste0(results_folder,"/kg_",s,"_",y,".csv"))
+    if(is.na(suffix)){
+        if(y %in% time & writefish) write.csv(fish,paste0(results_folder,"/fish_",s,"_",y,".csv"))
+        if(y %in% time & writefishcatch) write.csv(catch,paste0(results_folder,"/fishcatch_",s,"_",y,".csv"))
+        if(y %in% time & writekg) write.csv(kg,paste0(results_folder,"/kg_",s,"_",y,".csv"))
+    } else {
+        if(y %in% time & writefish) write.csv(fish,paste0(results_folder,"/fish_",s,"_",y,"_",suffix,".csv"))
+        if(y %in% time & writefishcatch) write.csv(catch,paste0(results_folder,"/fishcatch_",s,"_",y,"_",suffix,".csv"))
+        if(y %in% time & writekg) write.csv(kg,paste0(results_folder,"/kg_",s,"_",y,"_",suffix,".csv"))
+    }
 
     return(fish)
 }

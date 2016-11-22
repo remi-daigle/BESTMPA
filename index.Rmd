@@ -48,7 +48,7 @@ require(Grid2Polygons)
 Before getting started, using the housekeeping function will prepare the environment and your file structure for modelling. This function will conveniently create a results folder, clear the environment, figures, delete previous results, and increase the memory limit if desired.
 
 ```{r housekeeping, message=FALSE}
-results_folder <- "D:/BESTMPA_results"
+results_folder <- "BESTMPA_results"
 housekeeping(results_folder=results_folder,env=TRUE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
 
 ```
@@ -325,7 +325,7 @@ for(s in scenarios){
         fish <- dispersal(fish,cm=cma,ages=min_age_migration:maxage)
         
         #### larval dispersal ####
-        recruits <- larvaldispersal(recruits,cml,lM,CCs)
+        recruits <- larvaldispersal(recruits,cml,lM,CCs,fish)
         
         ############################ Harvesting #################################################
         quota <- estimatequota(fish,maxage,y,tot_time,FMSY,FMSY_buffer)
@@ -455,5 +455,440 @@ dev.off()
 grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
 
 ```
+# Sensitivity Analysis
+```{r sensitivity setup}
+results_folder <- "BESTMPA_sensitivity"
+
+housekeeping(results_folder=results_folder,env=FALSE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
+
+sens_factor <- 0.1
+# list scenarios for looping
+scenarios <- names(p)[grep("MPA_",names(p))] # assumes all scenarios begin with "MPA_"
+#select only SQ and TR scenarios
+scenarios <- scenarios[c(starts_with("MPA_SQ",vars=scenarios),starts_with("MPA_TR",vars=scenarios))]
+scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))] # re-order numerically
+# select only first 1 scenarios of each
+scenarios <- scenarios[1:2]
 
 
+```
+
+## fecundity
+```{r Loop over scenario and time for fecundity, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity*(1-sens_factor),age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity*(1+sens_factor),age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="fecundity_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="fecundity_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## initial_abun
+```{r Loop over scenario and time for initial_abun, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun*(1-sens_factor),p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun*(1+sens_factor),p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="initial_abun_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="initial_abun_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## initial_abun
+```{r Loop over scenario and time for age_mat_sigmoid, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid*(1-sens_factor),l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid*(1+sens_factor),l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="age_mat_sigmoid_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="age_mat_sigmoid_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## k_mean
+```{r Loop over scenario and time for k_mean, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean*(1-sens_factor),k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean*(1+sens_factor),k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="k_mean_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="k_mean_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## min_age_migration
+```{r Loop over scenario and time for min_age_migration, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun*(1-sens_factor),p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun*(1+sens_factor),p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=(min_age_migration-1):maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=(min_age_migration+1):maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_migration_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_migration_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## min_age_catch
+```{r Loop over scenario and time for min_age_catch, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun*(1-sens_factor),p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun*(1+sens_factor),p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=(min_age_catch-1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_catch_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=(min_age_catch+1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_catch_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## e_fold_adult
+```{r Loop over scenario and time for e_fold_adult, results='hide',eval=TRUE}
+# generate connectivity matrix
+#adult
+cma_minus <- initcm(p,e_fold_adult*(1-sens_factor),cell_size)
+cma_plus <- initcm(p,e_fold_adult*(1+sens_factor),cell_size)
+
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma_minus,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma_plus,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_adult_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_adult_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## e_fold_larvae
+```{r Loop over scenario and time for e_fold_larvae, results='hide',eval=TRUE}
+# generate connectivity matrix
+#larvae
+cml_minus <- initcm(p,e_fold_larvae*(1-sens_factor),cell_size)
+cml_plus <- initcm(p,e_fold_larvae*(1+sens_factor),cell_size)
+
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml_minus,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml_plus,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_larvae_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_larvae_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## FMSY
+```{r Loop over scenario and time for FMSY, results='hide',eval=TRUE}
+pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
+for(s in scenarios){
+    for(y in tot_time){
+        gc() # keeps memory from getting clogged
+        setProgressBar(pb, (which(s==scenarios)-1)/length(scenarios)+(1/length(scenarios)*((y-min(tot_time))/length(tot_time))), label=paste("Calculating scenario:",s,"year:",y))
+        ############################ Growth and reproduction #################################################
+        fish_minus <- growth(fish_minus,y,tot_time,initial_abun,p,maxage,recruits_minus,M)
+        fish_plus <- growth(fish_plus,y,tot_time,initial_abun,p,maxage,recruits_plus,M)
+
+        #### reproduction ####
+        recruits_minus <- reproduction(fish=fish_minus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+        recruits_plus <- reproduction(fish=fish_plus,fecundity,age_mat_steepness,age_mat_sigmoid,l_to_w_int,l_to_w_power,Linf_mean,Linf_SD,k_mean,k_SD,t0,breeding_near,p)
+
+        ############################ Dispersal #################################################
+        #### adult dispersal ####
+        fish_minus <- dispersal(fish=fish_minus,cm=cma,ages=min_age_migration:maxage)
+        fish_plus <- dispersal(fish=fish_plus,cm=cma,ages=min_age_migration:maxage)
+
+        #### larval dispersal ####
+        recruits_minus <- larvaldispersal(recruits_minus,cml,lM,CCs,fish_minus)
+        recruits_plus <- larvaldispersal(recruits_plus,cml,lM,CCs,fish_plus)
+
+        ############################ Harvesting #################################################
+        quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY*(1-sens_factor),FMSY_buffer)
+        quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY*(1+sens_factor),FMSY_buffer)
+
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="FMSY_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="FMSY_plus")
+
+        
+    }
+}
+
+close(pb)
+
+```
+
+## Evaluate Sensitivity
+```{r sensitivity data loading}
+# load fish catches
+filenames <- list.files(results_folder,pattern="kg_")
+catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
+catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
+catch_summary <- SDRvalues(catch_summary,t=time,value=catch_summary$netvalue,SDR)
+
+filenames <- list.files(results_folder,pattern="fish_")
+fish_summary <- rbindlist(lapply(filenames,processfish,results_folder))
+
+gathered <- catch_summary %>% 
+    dplyr::select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
+    gather(SDR,cumsumvalue,starts_with("SDRcumsum"))
+
+# levels(gathered$scenario) <- protect_scen_names
+
+```
+
+```{r}
+########## Figure 6 - Social Discount Rate #################################
+# jpeg(paste0(results_folder,'/figures/f6_SDR.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
+p1 <- ggplot(gathered,aes(x=year,y=cumsumvalue/10^6,colour=scenario,xlab="test"))+
+        geom_smooth(cex=1.5)+
+        theme_classic()+
+        # scale_colour_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
+        facet_wrap(~SDR,ncol=1,scale="free_x")+
+        theme(strip.background=element_blank(),
+              legend.position="none",
+              strip.text=element_text(face="bold"),
+              text=element_text(size=textsize))+
+        labs(x="Year",y=expression(paste("Cumulative Net Present Value (10"^"6"," CAD)",sep="")))
+
+p2 <- ggplot(gathered[gathered$year==max(gathered$year),],aes(x=scenario,y=cumsumvalue/10^6,fill=scenario))+
+    # geom_jitter(size=0.5)+
+    # geom_violin(alpha=0.7)+
+        geom_boxplot()+
+        theme_classic()+
+        # scale_fill_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
+        facet_wrap(~SDR,ncol=1,scale="free_x")+
+        theme(strip.background=element_blank(),
+              legend.position="none",
+              strip.text=element_text(face="bold"),
+              axis.text.x=element_text(angle=20,hjust=1),
+              text=element_text(size=textsize))+
+        labs(x="",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))
+g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs
+legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+lheight <- sum(legend$height)
+
+grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
+# dev.off()
+
+```
+```{r,echo=FALSE}
+# grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
+
+```

@@ -15,7 +15,7 @@
 #' catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
 calcnetvalue <- function(catch_summary,Status_quo_profitability,fish_operating_cost_ratio){
     SQinitialstats <- catch_summary %>%
-        filter(scenario=="SQ",year==min(time)) %>%
+        filter(starts_with("SQ",vars=catch_summary$scenario),year==min(time)) %>%
         summarize(distanceGV=mean(distanceGV,na.rm=T),
                   grossvalue=mean(grossvalue,na.rm=T))
 

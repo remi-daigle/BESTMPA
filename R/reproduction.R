@@ -19,6 +19,7 @@
 #' @inheritParams age2length
 #' @inheritParams length2weight
 #' @inheritParams addscenario
+#' @inheritParams fish2eggs
 #'
 #' @return
 #' @export
