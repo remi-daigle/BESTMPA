@@ -9,7 +9,7 @@ vignette: >
 ---
 ```{r setup, cache=FALSE, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=7, fig.height=7)
+opts_chunk$set(fig.width=7, fig.height=7,cache=TRUE)
 ```
 Thank you for your interest in the R package for the bioeconomic evaluation of MPA network design! If you haven't already done so, please refer to the [manuscript](https://f1000research.com/articles/4-1234/v1) describing the model results.
 
@@ -42,6 +42,7 @@ require(grid)
 require(spdep)
 require(Matrix)
 require(Grid2Polygons)
+require(plotrix)
 ```
 
 ## Housekeeping
@@ -146,7 +147,8 @@ p <- readOGR(dsn="shapefiles",layer="master_polygon")
 ```
 Or you can plot all of the scenarios statically
 ```{r}
-protect_scen_colour <- c("purple","green","red","blue")
+# protect_scen_colour <- c("purple","green","red","blue")
+protect_scen_colour <- c("#D01C8B","#F1B6DA","#B8E186","#4DAC26")
 protect_scen_names <- c("Status Quo", "Maximum Distance", "Fixed Distance" , "Targeted")
 res <- 400
 qual <- 100
@@ -359,7 +361,7 @@ textsize <- 10
 
 ```
 
-```{r data loading}
+```{r data loading,eval=TRUE}
 # load fish catches
 filenames <- list.files(results_folder,pattern="kg_")
 catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
@@ -376,7 +378,7 @@ levels(gathered$scenario) <- protect_scen_names
 
 ```
 
-```{r Plotting}
+```{r Plotting,eval=TRUE}
 
 
 ########## Figure 3 - plot of biomass over time #################################
@@ -451,15 +453,15 @@ grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "n
 dev.off()
 
 ```
-```{r,echo=FALSE}
+```{r,echo=FALSE,eval=FALSE}
 grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
 
 ```
 # Sensitivity Analysis
 ```{r sensitivity setup}
-results_folder <- "BESTMPA_sensitivity"
+results_folder_sens <- "BESTMPA_sensitivity"
 
-housekeeping(results_folder=results_folder,env=FALSE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
+housekeeping(results_folder=results_folder_sens,env=FALSE,fig=TRUE,delete=FALSE,memorylimit=memory.limit())
 
 sens_factor <- 0.1
 # list scenarios for looping
@@ -468,13 +470,13 @@ scenarios <- names(p)[grep("MPA_",names(p))] # assumes all scenarios begin with 
 scenarios <- scenarios[c(starts_with("MPA_SQ",vars=scenarios),starts_with("MPA_TR",vars=scenarios))]
 scenarios <- scenarios[order(as.numeric(substr(scenarios,8,nchar(scenarios))))] # re-order numerically
 # select only first 1 scenarios of each
-scenarios <- scenarios[1:2]
+scenarios <- scenarios[1:50]
 
 
 ```
 
 ## fecundity
-```{r Loop over scenario and time for fecundity, results='hide',eval=TRUE}
+```{r Loop over scenario and time for fecundity, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -501,8 +503,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="fecundity_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="fecundity_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="fecundity_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="fecundity_plus")
 
         
     }
@@ -513,7 +515,7 @@ close(pb)
 ```
 
 ## initial_abun
-```{r Loop over scenario and time for initial_abun, results='hide',eval=TRUE}
+```{r Loop over scenario and time for initial_abun, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -540,8 +542,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="initial_abun_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="initial_abun_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="initial_abun_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="initial_abun_plus")
 
         
     }
@@ -551,8 +553,8 @@ close(pb)
 
 ```
 
-## initial_abun
-```{r Loop over scenario and time for age_mat_sigmoid, results='hide',eval=TRUE}
+## age_mat_sigmoid
+```{r Loop over scenario and time for age_mat_sigmoid, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -579,8 +581,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="age_mat_sigmoid_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="age_mat_sigmoid_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="age_mat_sigmoid_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="age_mat_sigmoid_plus")
 
         
     }
@@ -591,7 +593,7 @@ close(pb)
 ```
 
 ## k_mean
-```{r Loop over scenario and time for k_mean, results='hide',eval=TRUE}
+```{r Loop over scenario and time for k_mean, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -618,8 +620,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="k_mean_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="k_mean_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="k_mean_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="k_mean_plus")
 
         
     }
@@ -630,7 +632,7 @@ close(pb)
 ```
 
 ## min_age_migration
-```{r Loop over scenario and time for min_age_migration, results='hide',eval=TRUE}
+```{r Loop over scenario and time for min_age_migration, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -657,8 +659,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_migration_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_migration_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="min_age_migration_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="min_age_migration_plus")
 
         
     }
@@ -669,7 +671,7 @@ close(pb)
 ```
 
 ## min_age_catch
-```{r Loop over scenario and time for min_age_catch, results='hide',eval=TRUE}
+```{r Loop over scenario and time for min_age_catch, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -696,8 +698,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=(min_age_catch-1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_catch_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=(min_age_catch+1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="min_age_catch_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=(min_age_catch-1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="min_age_catch_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=(min_age_catch+1):maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="min_age_catch_plus")
 
         
     }
@@ -708,7 +710,7 @@ close(pb)
 ```
 
 ## e_fold_adult
-```{r Loop over scenario and time for e_fold_adult, results='hide',eval=TRUE}
+```{r Loop over scenario and time for e_fold_adult, results='hide',eval=FALSE}
 # generate connectivity matrix
 #adult
 cma_minus <- initcm(p,e_fold_adult*(1-sens_factor),cell_size)
@@ -740,8 +742,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_adult_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_adult_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="e_fold_adult_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="e_fold_adult_plus")
 
         
     }
@@ -752,7 +754,7 @@ close(pb)
 ```
 
 ## e_fold_larvae
-```{r Loop over scenario and time for e_fold_larvae, results='hide',eval=TRUE}
+```{r Loop over scenario and time for e_fold_larvae, results='hide',eval=FALSE}
 # generate connectivity matrix
 #larvae
 cml_minus <- initcm(p,e_fold_larvae*(1-sens_factor),cell_size)
@@ -784,8 +786,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY,FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY,FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_larvae_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="e_fold_larvae_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="e_fold_larvae_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="e_fold_larvae_plus")
 
         
     }
@@ -796,7 +798,7 @@ close(pb)
 ```
 
 ## FMSY
-```{r Loop over scenario and time for FMSY, results='hide',eval=TRUE}
+```{r Loop over scenario and time for FMSY, results='hide',eval=FALSE}
 pb <- progressBar("Looping through scenarios and time", "scenario",0, 1, 0)
 for(s in scenarios){
     for(y in tot_time){
@@ -823,8 +825,8 @@ for(s in scenarios){
         quota_minus <- estimatequota(fish=fish_minus,maxage,y,tot_time,FMSY*(1-sens_factor),FMSY_buffer)
         quota_plus <- estimatequota(fish=fish_plus,maxage,y,tot_time,FMSY*(1+sens_factor),FMSY_buffer)
 
-        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="FMSY_minus")
-        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder,y=y,time=time, suffix="FMSY_plus")
+        fish_minus <- harvest(fish=fish_minus,quota_minus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="FMSY_minus")
+        fish_plus <- harvest(fish=fish_plus,quota_plus,ages=min_age_catch:maxage,distance,fish_licenses,mpabefore=p$MPA_SQ_1,mpaafter=p[[s]],writefish=TRUE,writefishcatch=TRUE,writekg=TRUE,results_folder_sens,y=y,time=time, suffix="FMSY_plus")
 
         
     }
@@ -837,17 +839,27 @@ close(pb)
 ## Evaluate Sensitivity
 ```{r sensitivity data loading}
 # load fish catches
-filenames <- list.files(results_folder,pattern="kg_")
-catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
-catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
-catch_summary <- SDRvalues(catch_summary,t=time,value=catch_summary$netvalue,SDR)
+filenames <- list.files(results_folder_sens,pattern="kg_")
+catch_summary_sens <- rbindlist(lapply(filenames,processkg,results_folder_sens,distance,fish_landed_value))
+catch_summary_sens <- calcnetvalue(catch_summary_sens,Status_quo_profitability,fish_operating_cost_ratio)
+catch_summary_sens <- SDRvalues(catch_summary_sens,t=time,value=catch_summary_sens$netvalue,SDR)
 
-filenames <- list.files(results_folder,pattern="fish_")
-fish_summary <- rbindlist(lapply(filenames,processfish,results_folder))
+filenames <- list.files(results_folder_sens,pattern="fish_")
+fish_summary_sens <- rbindlist(lapply(filenames,processfish,results_folder_sens))
 
-gathered <- catch_summary %>% 
+gathered <- catch_summary_sens %>% 
     dplyr::select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
     gather(SDR,cumsumvalue,starts_with("SDRcumsum"))
+
+radialmeans <- catch_summary_sens %>%
+filter(year==max(tot_time)) %>%
+group_by(scenario) %>%
+summarize(meanSDR=mean(`SDRcumsum = 0.015`)) %>%
+mutate(variable=gsub("^[^_]+_|_[^_]+$", "", scenario),
+scenario=gsub("_.*_", "_", scenario)) %>%
+spread(key=scenario,value=meanSDR) %>%
+ungroup() %>%
+as.data.frame()
 
 # levels(gathered$scenario) <- protect_scen_names
 
@@ -855,40 +867,55 @@ gathered <- catch_summary %>%
 
 ```{r}
 ########## Figure 6 - Social Discount Rate #################################
-# jpeg(paste0(results_folder,'/figures/f6_SDR.jpg'),height=20,width=17,units="cm",res=res,qual=qual)
-p1 <- ggplot(gathered,aes(x=year,y=cumsumvalue/10^6,colour=scenario,xlab="test"))+
-        geom_smooth(cex=1.5)+
-        theme_classic()+
-        # scale_colour_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
-        facet_wrap(~SDR,ncol=1,scale="free_x")+
-        theme(strip.background=element_blank(),
-              legend.position="none",
-              strip.text=element_text(face="bold"),
-              text=element_text(size=textsize))+
-        labs(x="Year",y=expression(paste("Cumulative Net Present Value (10"^"6"," CAD)",sep="")))
+jpeg(paste0(results_folder,'/figures/f7_sensitivity.jpg'),height=17,width=17,units="cm",res=res,qual=qual)
+radial.plot(rep(mean(catch_summary$`SDRcumsum = 0.015`),nrow(radialmeans)),
+            labels=as.character(radialmeans[,1]),
+            rp.type="p",
+            radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
+            poly.col="transparent",
+            line.col="black",
+            show.grid.labels=1,
+            lwd=2,
+            lty=2)
 
-p2 <- ggplot(gathered[gathered$year==max(gathered$year),],aes(x=scenario,y=cumsumvalue/10^6,fill=scenario))+
-    # geom_jitter(size=0.5)+
-    # geom_violin(alpha=0.7)+
-        geom_boxplot()+
-        theme_classic()+
-        # scale_fill_manual(values=protect_scen_colour,labels = protect_scen_names,name="")+
-        facet_wrap(~SDR,ncol=1,scale="free_x")+
-        theme(strip.background=element_blank(),
-              legend.position="none",
-              strip.text=element_text(face="bold"),
-              axis.text.x=element_text(angle=20,hjust=1),
-              text=element_text(size=textsize))+
-        labs(x="",y=expression(paste("Net Present Value (10"^"6"," CAD)",sep="")))
-g <- ggplotGrob(p1 + theme(legend.position="bottom"))$grobs
-legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-lheight <- sum(legend$height)
-
-grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
-# dev.off()
+radial.plot(t(radialmeans[,2:5]),
+            labels=as.character(radialmeans[,1]),
+            rp.type="s",
+            radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
+            point.symbols=c("-","+","-","+"),
+            point.col=protect_scen_colour[c(1,1,4,4)],
+            show.grid.labels=1,
+            lwd=2,
+            cex=2,
+            add=T)
+legend(max(radialmeans[,2:5]),max(radialmeans[,2:5])*2,names(radialmeans[,2:5]),col=protect_scen_colour[c(1,1,4,4)],pch=c("-","+","-","+"),pt.cex=2)
+    
+dev.off()
 
 ```
-```{r,echo=FALSE}
-# grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
+```{r, echo=FALSE}
+########## Figure 6 - Social Discount Rate #################################
+radial.plot(rep(mean(catch_summary$`SDRcumsum = 0.015`),nrow(radialmeans)),
+            labels=as.character(radialmeans[,1]),
+            rp.type="p",
+            radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
+            poly.col="transparent",
+            line.col="black",
+            show.grid.labels=1,
+            lwd=2,
+            lty=2)
+
+radial.plot(t(radialmeans[,2:5]),
+            labels=as.character(radialmeans[,1]),
+            rp.type="s",
+            radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
+            point.symbols=c("-","+","-","+"),
+            point.col=protect_scen_colour[c(1,1,4,4)],
+            show.grid.labels=1,
+            lwd=2,
+            cex=2,
+            add=T)
+legend(max(radialmeans[,2:5]),max(radialmeans[,2:5])*2,names(radialmeans[,2:5]),col=protect_scen_colour[c(1,1,4,4)],pch=c("-","+","-","+"),pt.cex=2)
+    
 
 ```
