@@ -861,22 +861,29 @@ spread(key=scenario,value=meanSDR) %>%
 ungroup() %>%
 as.data.frame()
 
+
+catch_summary_means <- catch_summary %>% 
+    filter(year==max(tot_time)) %>% 
+    group_by(scenario) %>% 
+    summarize(meancumsum = mean(`SDRcumsum = 0.015`)) %>% 
+    spread(scenario,meancumsum)
+
+catch_summary_means <- catch_summary_means[rep(1,nrow(radialmeans)),]
 # levels(gathered$scenario) <- protect_scen_names
 
 ```
 
-```{r}
-########## Figure 6 - Social Discount Rate #################################
+```{r figure 7 sensitivity}
 jpeg(paste0(results_folder,'/figures/f7_sensitivity.jpg'),height=17,width=17,units="cm",res=res,qual=qual)
-radial.plot(rep(mean(catch_summary$`SDRcumsum = 0.015`),nrow(radialmeans)),
+radial.plot(t(cbind(catch_summary_means$SQ,catch_summary_means$TR)),
             labels=as.character(radialmeans[,1]),
             rp.type="p",
             radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
             poly.col="transparent",
-            line.col="black",
+            line.col=protect_scen_colour[c(1,4)],
             show.grid.labels=1,
             lwd=2,
-            lty=2)
+            lty=1)
 
 radial.plot(t(radialmeans[,2:5]),
             labels=as.character(radialmeans[,1]),
@@ -886,7 +893,7 @@ radial.plot(t(radialmeans[,2:5]),
             point.col=protect_scen_colour[c(1,1,4,4)],
             show.grid.labels=1,
             lwd=2,
-            cex=2,
+            cex=2.5,
             add=T)
 legend(max(radialmeans[,2:5]),max(radialmeans[,2:5])*2,names(radialmeans[,2:5]),col=protect_scen_colour[c(1,1,4,4)],pch=c("-","+","-","+"),pt.cex=2)
     
@@ -895,15 +902,15 @@ dev.off()
 ```
 ```{r, echo=FALSE}
 ########## Figure 6 - Social Discount Rate #################################
-radial.plot(rep(mean(catch_summary$`SDRcumsum = 0.015`),nrow(radialmeans)),
+radial.plot(t(cbind(catch_summary_means$SQ,catch_summary_means$TR)),
             labels=as.character(radialmeans[,1]),
             rp.type="p",
             radial.lim=c(min(radialmeans[,2:5])*1.3,max(radialmeans[,2:5])*1.2),
             poly.col="transparent",
-            line.col="black",
+            line.col=protect_scen_colour[c(1,4)],
             show.grid.labels=1,
             lwd=2,
-            lty=2)
+            lty=1)
 
 radial.plot(t(radialmeans[,2:5]),
             labels=as.character(radialmeans[,1]),
@@ -913,9 +920,17 @@ radial.plot(t(radialmeans[,2:5]),
             point.col=protect_scen_colour[c(1,1,4,4)],
             show.grid.labels=1,
             lwd=2,
-            cex=2,
+            cex=2.5,
             add=T)
-legend(max(radialmeans[,2:5]),max(radialmeans[,2:5])*2,names(radialmeans[,2:5]),col=protect_scen_colour[c(1,1,4,4)],pch=c("-","+","-","+"),pt.cex=2)
+legend(max(radialmeans[,2:5])*0.7,
+       max(radialmeans[,2:5])*2.2,
+       c("Status Quo","Status Quo 90%","Status Quo 110%","Targeted","Targeted 90%","Targeted 110%"),
+       col=protect_scen_colour[c(1,1,1,4,4,4)],
+       lty=c(1,NA,NA,1,NA,NA),
+       pch=c(NA,"-","+",NA,"-","+"),
+       lwd=2,
+       pt.cex=2.5,
+       bty="n")
     
 
 ```
