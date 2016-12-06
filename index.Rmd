@@ -380,13 +380,11 @@ levels(gathered$scenario) <- protect_scen_names
 
 ```{r table 1}
 table1 <- catch_summary %>% 
-    filter(year==max(tot_time)) %>% 
     group_by(scenario) %>% 
     summarize(Catch=paste0(round(mean(kg)/1000)," (\u00b1 ",round(std.error(kg)/1000),")"),
               Distance=paste0(round(mean(distanceGV)/1000)," (\u00b1 ",round(std.error(distanceGV)/1000),")"))
 
 table1 <- cbind(table1,fish_summary %>% 
-    filter(year==max(tot_time)) %>% 
     group_by(scenario) %>% 
     summarize(Biomass=paste0(round(mean(biomass)/1000)," (\u00b1 ",round(std.error(biomass)/1000),")")) %>% 
     select(Biomass))

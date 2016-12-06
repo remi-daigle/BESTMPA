@@ -384,13 +384,11 @@ gathered &lt;-<span class="st"> </span>catch_summary %&gt;%<span class="st"> </s
 <span class="st">    </span><span class="kw">gather</span>(SDR,cumsumvalue,<span class="kw">starts_with</span>(<span class="st">&quot;SDRcumsum&quot;</span>))
 <span class="kw">levels</span>(gathered$scenario) &lt;-<span class="st"> </span>protect_scen_names</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">table1 &lt;-<span class="st"> </span>catch_summary %&gt;%<span class="st"> </span>
-<span class="st">    </span><span class="kw">filter</span>(year==<span class="kw">max</span>(tot_time)) %&gt;%<span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(scenario) %&gt;%<span class="st"> </span>
 <span class="st">    </span><span class="kw">summarize</span>(<span class="dt">Catch=</span><span class="kw">paste0</span>(<span class="kw">round</span>(<span class="kw">mean</span>(kg)/<span class="dv">1000</span>),<span class="st">&quot; (\u00b1 &quot;</span>,<span class="kw">round</span>(<span class="kw">std.error</span>(kg)/<span class="dv">1000</span>),<span class="st">&quot;)&quot;</span>),
               <span class="dt">Distance=</span><span class="kw">paste0</span>(<span class="kw">round</span>(<span class="kw">mean</span>(distanceGV)/<span class="dv">1000</span>),<span class="st">&quot; (\u00b1 &quot;</span>,<span class="kw">round</span>(<span class="kw">std.error</span>(distanceGV)/<span class="dv">1000</span>),<span class="st">&quot;)&quot;</span>))
 
 table1 &lt;-<span class="st"> </span><span class="kw">cbind</span>(table1,fish_summary %&gt;%<span class="st"> </span>
-<span class="st">    </span><span class="kw">filter</span>(year==<span class="kw">max</span>(tot_time)) %&gt;%<span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(scenario) %&gt;%<span class="st"> </span>
 <span class="st">    </span><span class="kw">summarize</span>(<span class="dt">Biomass=</span><span class="kw">paste0</span>(<span class="kw">round</span>(<span class="kw">mean</span>(biomass)/<span class="dv">1000</span>),<span class="st">&quot; (\u00b1 &quot;</span>,<span class="kw">round</span>(<span class="kw">std.error</span>(biomass)/<span class="dv">1000</span>),<span class="st">&quot;)&quot;</span>)) %&gt;%<span class="st"> </span>
 <span class="st">    </span><span class="kw">select</span>(Biomass))
@@ -402,11 +400,11 @@ table1 &lt;-<span class="st"> </span><span class="kw">cbind</span>(table1,catch_
 <span class="st">                    </span><span class="kw">summarize</span>(<span class="dt">Moratorium=</span><span class="kw">paste0</span>(<span class="kw">round</span>(<span class="kw">mean</span>(Mort),<span class="dv">2</span>),<span class="st">&quot; (\u00b1 &quot;</span>,<span class="kw">round</span>(<span class="kw">std.error</span>(Mort)),<span class="st">&quot;)&quot;</span>)) %&gt;%<span class="st"> </span>
 <span class="st">                    </span><span class="kw">select</span>(Moratorium))
 table1[,<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">5</span>)]</code></pre></div>
-<pre><code>##   scenario      Biomass       Catch  Distance Moratorium
-## 1       FX 10958 (± 74) 3141 (± 42) 314 (± 3) 1.12 (± 0)
-## 2       MD  9904 (± 77) 3036 (± 35) 319 (± 3) 1.37 (± 0)
-## 3       SQ  8040 (± 95) 2748 (± 54) 331 (± 4) 5.02 (± 0)
-## 4       TR 11488 (± 61) 3298 (± 31) 315 (± 3) 0.98 (± 0)</code></pre>
+<pre><code>##   scenario      Biomass      Catch  Distance Moratorium
+## 1       FX 10768 (± 12) 3161 (± 6) 314 (± 0) 1.12 (± 0)
+## 2       MD  9888 (± 12) 3074 (± 6) 319 (± 0) 1.37 (± 0)
+## 3       SQ  8598 (± 16) 2938 (± 8) 327 (± 1) 5.02 (± 0)
+## 4       TR 11281 (± 12) 3224 (± 6) 316 (± 0) 0.98 (± 0)</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">########## Figure 3 - plot of biomass over time #################################
 p1 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(fish_summary,<span class="kw">aes</span>(<span class="dt">x=</span>year,<span class="dt">y=</span>biomass/<span class="dv">1000</span>,<span class="dt">colour=</span>scenario))+
 <span class="st">    </span><span class="kw">geom_smooth</span>(<span class="dt">cex=</span><span class="dv">2</span>)+
