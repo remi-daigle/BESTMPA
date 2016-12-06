@@ -915,7 +915,15 @@ radial.plot(t(radialmeans[,2:5]),
             lwd=2,
             cex=2.5,
             add=T)
-legend(max(radialmeans[,2:5]),max(radialmeans[,2:5])*2,names(radialmeans[,2:5]),col=protect_scen_colour[c(1,1,4,4)],pch=c("-","+","-","+"),pt.cex=2)
+legend(max(radialmeans[,2:5])*0.7,
+       max(radialmeans[,2:5])*2.2,
+       c("Status Quo","Status Quo 90%","Status Quo 110%","Targeted","Targeted 90%","Targeted 110%"),
+       col=protect_scen_colour[c(1,1,1,4,4,4)],
+       lty=c(1,NA,NA,1,NA,NA),
+       pch=c(NA,"-","+",NA,"-","+"),
+       lwd=2,
+       pt.cex=2.5,
+       bty="n")
     
 dev.off()
 

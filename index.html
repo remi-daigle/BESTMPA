@@ -898,7 +898,15 @@ catch_summary_means &lt;-<span class="st"> </span>catch_summary_means[<span clas
             <span class="dt">lwd=</span><span class="dv">2</span>,
             <span class="dt">cex=</span><span class="fl">2.5</span>,
             <span class="dt">add=</span>T)
-<span class="kw">legend</span>(<span class="kw">max</span>(radialmeans[,<span class="dv">2</span>:<span class="dv">5</span>]),<span class="kw">max</span>(radialmeans[,<span class="dv">2</span>:<span class="dv">5</span>])*<span class="dv">2</span>,<span class="kw">names</span>(radialmeans[,<span class="dv">2</span>:<span class="dv">5</span>]),<span class="dt">col=</span>protect_scen_colour[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">4</span>)],<span class="dt">pch=</span><span class="kw">c</span>(<span class="st">&quot;-&quot;</span>,<span class="st">&quot;+&quot;</span>,<span class="st">&quot;-&quot;</span>,<span class="st">&quot;+&quot;</span>),<span class="dt">pt.cex=</span><span class="dv">2</span>)
+<span class="kw">legend</span>(<span class="kw">max</span>(radialmeans[,<span class="dv">2</span>:<span class="dv">5</span>])*<span class="fl">0.7</span>,
+       <span class="kw">max</span>(radialmeans[,<span class="dv">2</span>:<span class="dv">5</span>])*<span class="fl">2.2</span>,
+       <span class="kw">c</span>(<span class="st">&quot;Status Quo&quot;</span>,<span class="st">&quot;Status Quo 90%&quot;</span>,<span class="st">&quot;Status Quo 110%&quot;</span>,<span class="st">&quot;Targeted&quot;</span>,<span class="st">&quot;Targeted 90%&quot;</span>,<span class="st">&quot;Targeted 110%&quot;</span>),
+       <span class="dt">col=</span>protect_scen_colour[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">4</span>)],
+       <span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="ot">NA</span>,<span class="ot">NA</span>,<span class="dv">1</span>,<span class="ot">NA</span>,<span class="ot">NA</span>),
+       <span class="dt">pch=</span><span class="kw">c</span>(<span class="ot">NA</span>,<span class="st">&quot;-&quot;</span>,<span class="st">&quot;+&quot;</span>,<span class="ot">NA</span>,<span class="st">&quot;-&quot;</span>,<span class="st">&quot;+&quot;</span>),
+       <span class="dt">lwd=</span><span class="dv">2</span>,
+       <span class="dt">pt.cex=</span><span class="fl">2.5</span>,
+       <span class="dt">bty=</span><span class="st">&quot;n&quot;</span>)
     
 <span class="kw">dev.off</span>()</code></pre></div>
 <pre><code>## png 
