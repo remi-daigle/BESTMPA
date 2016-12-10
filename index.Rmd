@@ -367,13 +367,18 @@ filenames <- list.files(results_folder,pattern="kg_")
 catch_summary <- rbindlist(lapply(filenames,processkg,results_folder,distance,fish_landed_value))
 catch_summary <- calcnetvalue(catch_summary,Status_quo_profitability,fish_operating_cost_ratio)
 catch_summary <- SDRvalues(catch_summary,t=time,value=catch_summary$netvalue,SDR)
+catch_summary$scenario <- ordered(catch_summary$scenario,levels=c("SQ","MD","FX","TR"))
+
 
 filenames <- list.files(results_folder,pattern="fish_")
 fish_summary <- rbindlist(lapply(filenames,processfish,results_folder))
+fish_summary$scenario <- ordered(fish_summary$scenario,levels=c("SQ","MD","FX","TR"))
 
 gathered <- catch_summary %>% 
     dplyr::select(scenario,replicate,year,starts_with("SDRcumsum")) %>% 
     gather(SDR,cumsumvalue,starts_with("SDRcumsum"))
+gathered$scenario <- ordered(gathered$scenario,levels=c("SQ","MD","FX","TR"))
+
 levels(gathered$scenario) <- protect_scen_names
 
 ```
@@ -473,10 +478,7 @@ grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "n
 dev.off()
 
 ```
-```{r,echo=FALSE,eval=FALSE}
-grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "npc") - lheight))
-
-```
+![](BESTMPA_results/figures/f6_SDR.jpg)
 # Sensitivity Analysis
 ```{r sensitivity setup}
 results_folder_sens <- "BESTMPA_sensitivity"
@@ -889,7 +891,6 @@ catch_summary_means <- catch_summary %>%
     spread(scenario,meancumsum)
 
 catch_summary_means <- catch_summary_means[rep(1,nrow(radialmeans)),]
-# levels(gathered$scenario) <- protect_scen_names
 
 ```
 
