@@ -478,7 +478,9 @@ grid.arrange(legend,arrangeGrob(p1,p2,ncol=2),heights=unit.c(lheight, unit(1, "n
 dev.off()
 
 ```
-![](BESTMPA_results/figures/f6_SDR.jpg)
+```{r, echo = FALSE}
+knitr::include_graphics(paste0(results_folder,'/figures/f6_SDR.jpg'), dpi=400)
+```
 # Sensitivity Analysis
 ```{r sensitivity setup}
 results_folder_sens <- "BESTMPA_sensitivity"
